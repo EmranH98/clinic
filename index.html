@@ -1,0 +1,2919 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Clinic System v19 (Cloud)</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <!-- Supabase client (CDN). We also have a JS fallback loader in case a CDN is blocked. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* --- CSS STYLES (v19 Original) --- */
+    :root{
+      --bg:#f8fafc; --panel:#ffffff; --panel-border:#e2e8f0; --text:#0f172a; --text-muted:#64748b;
+      --brand:#3b82f6; --brand-light:#eff6ff; --accent:#0ea5e9; --good:#22c55e; --warn:#f59e0b;
+      --bad:#ef4444; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); --radius:16px;
+    }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{ margin:0; font-family: 'Tajawal', system-ui, sans-serif; background: var(--bg); color:var(--text); font-size: 14px; }
+    .app{max-width:1400px;margin:0 auto;padding:20px}
+    
+    .top{ display:flex;align-items:center;justify-content:space-between;gap:15px; background:var(--panel); border-radius:var(--radius); padding:15px 25px; box-shadow:var(--shadow); margin-bottom:20px; border:1px solid var(--panel-border); }
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{ width:40px;height:40px;border-radius:10px; background: linear-gradient(135deg, var(--brand), var(--accent)); box-shadow:0 4px 10px rgba(59,130,246,0.3); display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:20px; }
+    .brand h1{margin:0;font-size:20px;font-weight:800;letter-spacing:-0.5px} .brand small{display:block;margin-top:2px;color:var(--text-muted);font-size:11px;font-weight:500}
+    
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    button{ border:1px solid var(--panel-border); background:var(--panel); color:var(--text); padding:10px 18px; border-radius:12px; cursor:pointer; font-weight:700; font-family:inherit; transition:all 0.15s; font-size:13px; }
+    button:hover{background:var(--bg); transform:translateY(-1px)} button:active{transform:translateY(0)}
+    button.primary{ background: var(--brand); border-color:var(--brand); color:#fff; box-shadow: 0 4px 12px rgba(59,130,246,0.25); }
+    button.primary:hover{background:#2563eb}
+    button.ghost{background:transparent;border-color:transparent;box-shadow:none;color:var(--text-muted)} button.ghost:hover{background:var(--bg);color:var(--text)}
+    button.danger{background:#fef2f2;border-color:#fee2e2;color:var(--bad)} button.danger:hover{background:#fee2e2;border-color:#fecaca}
+
+    input,select,textarea{ width:100%; padding:11px 14px; border-radius:12px; border:1px solid var(--panel-border); background:var(--panel); color:var(--text); outline:none; font-family:inherit; font-size:13px; transition:0.2s; }
+    input:focus,select:focus{border-color:var(--brand); box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+    
+    .shell{display:grid;grid-template-columns:260px 1fr; gap:25px; align-items:start;}
+    @media (max-width: 900px){ .shell{grid-template-columns:1fr} .side{position:static} }
+    
+    .side{ position:sticky; top:20px; background:var(--panel); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); border:1px solid var(--panel-border); }
+    .nav{display:flex;flex-direction:column;gap:6px;}
+    .nav button{ text-align: inherit; justify-content:flex-start; display:flex; gap:12px; padding:12px 14px; border:none; background:transparent; box-shadow:none; color:var(--text-muted); font-weight:600; font-size:14px; }
+    .nav button:hover{background:var(--bg); color:var(--text); border-radius:10px;}
+    .nav button.active{background:var(--brand-light); color:var(--brand); font-weight:800; border-radius:10px;}
+    .nav-icon{ width:20px; text-align:center; font-size:16px; }
+
+    .card{ background:var(--panel); border-radius:var(--radius); padding:25px; box-shadow:var(--shadow); border:1px solid var(--panel-border); margin-bottom:20px; }
+    .grid{display:grid;gap:15px} .g2{grid-template-columns:repeat(2,minmax(0,1fr))} .g3{grid-template-columns:repeat(3,minmax(0,1fr))} .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+    @media (max-width: 700px){ .g2,.g3,.g4{grid-template-columns:1fr} }
+
+    .tablewrap{overflow-x:auto;border-radius:12px;border:1px solid var(--panel-border)}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{padding:12px 16px;border-bottom:1px solid var(--panel-border);text-align:left}
+    th{background:#f8fafc;font-weight:800;color:var(--text-muted);white-space:nowrap;font-size:12px;text-transform:uppercase;letter-spacing:0.5px}
+    tr:last-child td{border-bottom:0} .right{text-align:right}
+    
+    .opLine{color:#0f766e;font-size:12px;line-height:1.5;font-weight:600;display:block;}
+    .hint{font-size:11px;color:var(--text-muted);margin-bottom:6px;display:block;font-weight:700;text-transform:uppercase}
+    
+    .kpi-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 15px; }
+    .kpi-icon { width: 50px; height: 50px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .kpi-val { font-size: 28px; font-weight: 900; color: var(--text); line-height: 1; }
+    .kpi-lbl { font-size: 13px; color: var(--text-muted); font-weight: 600; margin-top: 4px; }
+    
+    .slip-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 30px; }
+    .slip-summary-box { border: 2px solid #0f172a; border-radius:8px; padding:15px; background:#f8fafc; }
+    .slip-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #cbd5e1; font-size: 13px; }
+    .slip-row.total { background: #e2e8f0; margin: 0 -15px -15px -15px; padding: 15px; font-weight: 900; border-top: 2px solid #0f172a; border-bottom: 0; font-size: 16px; border-radius: 0 0 6px 6px; }
+
+    @media print {
+      body { background-color: #f8fafc !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; font-size: 13px !important; }
+      .app { max-width: none; padding: 0; margin: 0; }
+      .top, .side, .noPrint, button, input, select, .notice, #demoHint, #toast, .nav, #authView, #loader { display: none !important; }
+      .card { background: white !important; border: 1px solid #cbd5e1 !important; box-shadow: none !important; padding: 25px !important; margin-bottom: 20px !important; border-radius: 12px !important; break-inside: avoid; }
+      .shell { display: block !important; } .main > div { display: none; }
+      #view_reports, #view_profiles { display: block !important; } #salarySlipCard { display: block !important; }
+      .tablewrap { border: 1px solid #cbd5e1 !important; overflow: visible !important; }
+      th { background-color: #f1f5f9 !important; color: #334155 !important; border-bottom: 1px solid #94a3b8 !important; }
+      tr.doc-row { background-color: #fff7ed !important; } tr.staff-row { background-color: #ffffff !important; }
+      .printHeader { display: flex !important; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #0f172a; padding-bottom: 15px; margin-bottom: 25px; }
+      .printHeader h1 { margin: 0; font-size: 24px; font-weight: 900; color: #0f172a; }
+      .slip-grid { display: grid !important; grid-template-columns: 1.5fr 1fr !important; gap: 30px !important; }
+      .slip-summary-box { background-color: #f8fafc !important; border: 2px solid #0f172a !important; }
+      .slip-row.total { background-color: #e2e8f0 !important; border-top: 2px solid #0f172a !important; }
+    }
+    .printHeader { display: none; }
+
+    #toast{ position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#1e293b; color:#fff; padding:12px 24px; border-radius:99px; font-size:14px; font-weight:600; box-shadow:0 10px 30px rgba(0,0,0,0.25); opacity:0; pointer-events:none; transition:opacity 0.3s, bottom 0.3s; z-index:9999; }
+    #toast.show{opacity:1; bottom:40px;}
+    .hidden { display: none !important; }
+    
+    #clinicSelect { background: var(--brand-light); border: 2px solid var(--brand); color: var(--brand); font-weight: 700; padding: 8px 12px; cursor: pointer; }
+    
+    /* Loading Spinner */
+    #loader { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .spin { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom:15px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div id="loader">
+    <div class="spin"></div>
+    <div style="font-weight:700;color:#64748b">Connecting to Cloud...</div>
+</div>
+<div id="toast"></div>
+
+<div class="app">
+  <div class="top">
+    <div class="brand">
+      <div class="logo">CS</div>
+      <div>
+        <h1 data-i18n="app_title">Clinic System</h1>
+        <small data-i18n="app_sub">Cloud Edition v19</small>
+      </div>
+    </div>
+    <div class="row">
+      <select id="clinicSelect" class="noPrint"></select>
+      <button class="ghost noPrint" id="langBtn">العربية</button>
+      <span class="pill" id="who"></span>
+      <button class="ghost noPrint" id="logoutBtn" data-i18n="logout">Logout</button>
+    </div>
+  </div>
+
+  <div id="authView" class="grid g2" style="max-width:900px;margin:60px auto">
+    <div class="card">
+      <h2 data-i18n="login_title">Login</h2>
+      <div class="grid g1">
+        <div><label class="hint" data-i18n="email">Email</label><input id="email" placeholder="admin@clinic.local"></div>
+        <div><label class="hint" data-i18n="password">Password</label><input id="password" type="password"></div>
+      </div>
+      <div style="height:20px"></div>
+      <div class="row">
+        <button class="primary" id="loginBtn" data-i18n="login_btn">Login</button>
+        <button id="initBtn" data-i18n="init_admin">Init Admin</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="appView" class="hidden">
+    <div class="shell">
+      <div class="side noPrint">
+        <div class="nav" id="nav"></div>
+        <div style="height:20px"></div>
+        <div class="notice" style="font-size:11px" id="rulesBox"></div>
+      </div>
+
+      <div class="main">
+        
+        <div id="view_dashboard" class="grid g3">
+          <div class="card" style="grid-column:1/-1">
+            <h2 data-i18n="dashboard" style="margin-top:0">Dashboard</h2>
+            <div class="grid g3">
+              <div class="kpi-card">
+                <div class="kpi-icon">👨‍⚕️</div>
+                <div><div class="kpi-val" id="kpiDoctors">0</div><div class="kpi-lbl" data-i18n="kpi_docs">Doctors</div></div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-icon">👥</div>
+                <div><div class="kpi-val" id="kpiStaff">0</div><div class="kpi-lbl" data-i18n="kpi_staff">Staff</div></div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-icon">💉</div>
+                <div><div class="kpi-val" id="kpiServices">0</div><div class="kpi-lbl" data-i18n="kpi_services">Services</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="grid-column:1/-1">
+            <div class="row" style="justify-content:space-between">
+              <h3 style="margin:0" data-i18n="today_quick">Today's Activity</h3>
+              <span class="pill" id="todayPill"></span>
+            </div>
+            <div style="height:15px"></div>
+            <div class="tablewrap"><table id="todayTable"></table></div>
+          </div>
+        </div>
+
+        <div id="view_daily" class="hidden grid g1">
+          <div class="card">
+            <h2 data-i18n="daily_entry" style="margin-top:0">Daily Entry</h2>
+            <div class="grid g3">
+              <div><label class="hint" data-i18n="date">Date</label><input id="entryDate" type="date"></div>
+              <div><label class="hint" data-i18n="entry_type">Type</label><select id="entryType"><option value="staff" data-i18n="staff">Staff</option><option value="doctor" data-i18n="doctor">Doctor</option></select></div>
+            </div>
+            <div style="height:20px;border-bottom:1px solid var(--panel-border);margin-bottom:20px"></div>
+
+            <div id="staffEntryBox" class="grid g3">
+              <div><label class="hint" data-i18n="staff_member">Name</label><select id="entryStaff"></select></div>
+              <div style="grid-column: span 2"><label class="hint" data-i18n="service">Service</label><select id="entryStaffService"></select></div>
+              <div><label class="hint" data-i18n="qty">Qty</label><input id="entryQty" type="number" step="0.01" value="1"></div>
+              <div><label class="hint" data-i18n="fixed_per_op">Fixed (JD)</label><input id="entryFixedPayout" type="number" step="0.01"></div>
+              <div><label class="hint" data-i18n="total_payout">Total</label><input id="entryFixedTotal" disabled style="background:var(--bg);font-weight:bold"></div>
+              <div style="grid-column:1/-1"><label class="hint" data-i18n="notes">Notes</label><input id="entryNoteStaff"></div>
+              <div class="row" style="grid-column:1/-1;margin-top:10px"><button class="primary" id="addEntryBtn" data-i18n="add_entry">Add Entry</button></div>
+            </div>
+
+            <div id="doctorEntryBox" class="hidden">
+              <div class="grid g3">
+                <div><label class="hint" data-i18n="doctor_name">Doctor</label><select id="entryDoctor"></select></div>
+                <div style="grid-column: span 2"><label class="hint" data-i18n="customer">Patient Name</label><input id="entryCustomer" list="customerHints" placeholder="Type name..." autocomplete="off"><datalist id="customerHints"></datalist></div>
+              </div>
+              <div class="grid g4" style="align-items:end; margin-top:15px">
+                <div style="grid-column:span 2"><label class="hint" data-i18n="service">Service</label><select id="entryDoctorService"></select></div>
+                <div><label class="hint" data-i18n="qty">Qty</label><input id="entryDocQty" type="number" step="0.01" value="1"></div>
+                <div><label class="hint" data-i18n="paid_jd">Paid (JD)</label><input id="entryDocPrice" type="number" step="0.01"></div>
+                <div><label class="hint" data-i18n="cost_jd">Cost (JD)</label><input id="entryDocCost" type="number" step="0.01"></div>
+                <div style="grid-column:span 2"><button id="addLineBtn" class="primary" style="width:100%" data-i18n="add_line">Add Line to Visit</button></div>
+              </div>
+              <div style="height:20px"></div>
+              <div class="tablewrap"><table id="visitLinesTable"></table></div>
+              <div id="visitTotals" style="margin:15px 0;padding:10px;background:#fff7ed;border-radius:8px;border:1px solid #ffedd5;text-align:right"></div>
+              <div class="grid g1">
+                 <div><label class="hint" data-i18n="notes">Visit Notes</label><input id="entryNoteDoctor"></div>
+                 <div class="row" style="justify-content:flex-end">
+                   <button class="danger" id="clearVisitBtn" data-i18n="clear_visit">Cancel</button>
+                   <button class="primary" id="saveVisitBtn" data-i18n="save_visit">Save Visit</button>
+                 </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="row" style="justify-content:space-between">
+              <h3 style="margin:0" data-i18n="entries_selected">Entries</h3>
+              <div class="row" style="gap:8px">
+                <button id="importCsvBtn" class="noPrint" style="font-size:12px">Import CSV</button>
+                <button id="pasteGridBtn" class="noPrint" style="font-size:12px">Paste Grid</button>
+                <button id="exportDayBtn" class="noPrint" style="font-size:12px">Export CSV</button>
+              </div>
+            </div>
+            <div style="height:10px"></div>
+            <div class="tablewrap"><table id="dayTable"></table></div>
+          </div>
+
+          <div class="card" id="batchEntryCard">
+            <div class="row" style="justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px">
+              <div>
+                <h3 style="margin:0">Batch Entry Grid (Bulk Ops)</h3>
+                <div class="hint" style="margin-top:4px">Add multiple operations in a table, or load rows from Import CSV / Paste Grid preview, then edit and submit.</div>
+              </div>
+              <div class="row" style="gap:10px">
+                <button id="batchSubmitBtn" class="primary">Submit Batch</button>
+                <button id="batchClearBtn">Clear</button>
+                <button id="batchAddRowBtn">Add Row +</button>
+              </div>
+            </div>
+            <div style="height:12px"></div>
+            <div id="batchStatus" class="notice" style="display:none"></div>
+            <div class="tablewrap" style="max-height:420px; overflow:auto">
+              <table id="batchTable"></table>
+            </div>
+          </div>
+</div>
+          </div>
+        </div>
+
+        <div id="view_reports" class="hidden grid g1">
+          <div class="card noPrint">
+            <div id="viewerBanner" class="notice" style="display:none; margin-bottom:15px; background:#e0f2fe; border:1px solid #7dd3fc; font-size:15px; font-weight:700"></div>
+            <h2 data-i18n="reports" style="margin-top:0">Reports</h2>
+            <div class="grid g4">
+              <div><label class="hint" data-i18n="from">From</label><input id="repFrom" type="date"></div>
+              <div><label class="hint" data-i18n="to">To</label><input id="repTo" type="date"></div>
+              <div id="adminFilters" style="display:contents">
+                <div><label class="hint" data-i18n="type">Type</label><select id="repType"><option value="all" data-i18n="all">All</option><option value="staff" data-i18n="staff">Staff</option><option value="doctor" data-i18n="doctor">Doctor</option></select></div>
+                <div><label class="hint" data-i18n="filter_person">Person</label><select id="repPerson"></select></div>
+              </div>
+            </div>
+            <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #ccc; display:flex; gap:15px; align-items:center;">
+                <label class="hint" style="margin:0">Scope:</label>
+                <label style="font-size:13px; font-weight:600;"><input type="radio" name="repScope" value="current" checked> Current Clinic Only</label>
+                <label style="font-size:13px; font-weight:600;"><input type="radio" name="repScope" value="all"> All Clinics (Consolidated)</label>
+            </div>
+            <div style="height:15px"></div>
+            <div class="row">
+              <button class="primary" id="runReportBtn" data-i18n="run">Run Report</button>
+              <button id="printBtn" data-i18n="print_pdf">Print / PDF</button>
+              <button id="exportRepBtn" style="font-size:13px">📄 Export CSV</button>
+            </div>
+          </div>
+          
+          <div class="card" id="reportResultCard">
+            <div class="printHeader">
+              <div>
+                <h1 style="margin:0;font-size:24px;font-weight:900" id="printTitle">Clinic Report</h1>
+                <div id="printMeta" style="margin-top:5px;font-size:13px;color:#555"></div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:800;font-size:16px" id="printClinicName">CLINIC SYSTEM</div>
+                <div style="font-size:12px;color:#666" id="printDate"></div>
+              </div>
+            </div>
+            <div id="reportSummary"></div>
+            <div style="height:20px"></div>
+            <div class="tablewrap" id="reportTableWrap"><table id="reportTable"></table></div>
+          </div>
+        </div>
+
+        <div id="view_profiles" class="hidden grid g1">
+          <div class="card noPrint">
+            <h2 style="margin-top:0" data-i18n="staff_profile">Statements</h2>
+            <div class="grid g3">
+              <div><label class="hint" data-i18n="type">Type</label><select id="profType"><option value="staff" data-i18n="staff">Staff (Salary)</option><option value="doctor" data-i18n="doctor">Doctor (Payout)</option></select></div>
+              <div><label class="hint" data-i18n="filter_person">Person</label><select id="profilePerson" style="width:100%"></select></div>
+              <div><label class="hint" data-i18n="from">From</label><input id="prFrom" type="date"></div>
+              <div><label class="hint" data-i18n="to">To</label><input id="prTo" type="date"></div>
+              <div style="align-self:end">
+                <button class="primary" id="calcProfileBtn" data-i18n="run">Generate</button>
+                <button id="printSlipBtn" class="ghost" style="margin-left:5px">🖨️ Print</button>
+                <button id="exportSlipBtn" class="ghost" style="margin-left:5px">📄 CSV</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" id="salarySlipCard" style="display:none">
+             <div class="printHeader">
+               <div>
+                 <h1 id="slipTitle" style="margin:0;font-size:24px;font-weight:900">Statement</h1>
+                 <div id="slipMeta" style="margin-top:5px;font-size:13px;color:#555"></div>
+               </div>
+               <div style="text-align:right">
+                 <div style="font-weight:800;font-size:16px" id="slipClinicName">CLINIC SYSTEM</div>
+                 <div id="slipDateStr" style="font-size:12px;color:#666"></div>
+               </div>
+             </div>
+             <div id="statementContent"></div>
+          </div>
+        </div>
+
+        <div id="view_staff" class="hidden grid g2">
+          <div class="card">
+            <h2 data-i18n="staff" style="margin-top:0">Staff</h2>
+            <div class="grid g2">
+              <div><label class="hint" data-i18n="name">Name</label><input id="staffName"></div>
+              <div><label class="hint" data-i18n="base_salary">Salary</label><input id="staffSalary" type="number"></div>
+              <div><label class="hint" data-i18n="ssn_deduction">Social Security (JD)</label><input id="staffSSN" type="number" step="0.01"></div>
+            </div>
+            <div style="height:15px"></div>
+            <button class="primary" id="addStaffBtn" data-i18n="add_staff">Add to Current Clinic</button>
+          </div>
+          <div class="card">
+            <h3 style="margin:0" data-i18n="all_staff">List (Current Clinic)</h3>
+            <div style="height:10px"></div>
+            <div class="tablewrap"><table id="staffTable"></table></div>
+          </div>
+        </div>
+
+        <div id="view_doctors" class="hidden grid g2">
+          <div class="card">
+            <h2 data-i18n="doctors" style="margin-top:0">Doctors</h2>
+            <div class="grid g1">
+              <div><label class="hint" data-i18n="name">Name</label><input id="docName"></div>
+              <div><label class="hint" data-i18n="note">Note</label><input id="docNote"></div>
+            </div>
+            <div style="height:15px"></div>
+            <button class="primary" id="addDocBtn" data-i18n="add_doctor">Add to Current Clinic</button>
+          </div>
+          <div class="card">
+            <h3 style="margin:0" data-i18n="all_doctors">List (Current Clinic)</h3>
+            <div style="height:10px"></div>
+            <div class="tablewrap"><table id="docTable"></table></div>
+          </div>
+        </div>
+
+        <div id="view_services" class="hidden grid g1">
+          <div class="card">
+            <h2 data-i18n="services" style="margin-top:0">Services</h2>
+            <div class="grid g4">
+              <div><label class="hint" data-i18n="category">Category</label><select id="svcCategory"><option value="staff" data-i18n="staff_service">Staff Service</option><option value="doctor" data-i18n="doctor_service">Doctor Service</option></select></div>
+              <div style="grid-column: span 2"><label class="hint" data-i18n="service_name">Name</label><input id="svcName"></div>
+              <div><label class="hint" data-i18n="default_price">Price (JD)</label><input id="svcPrice" type="number"></div>
+              <div id="svcFixedWrap"><label class="hint" data-i18n="fixed_per_op">Fixed Payout (JD)</label><input id="svcFixed" type="number"></div>
+              <div id="svcDocCostWrap" class="hidden"><label class="hint" data-i18n="default_cost">Default Cost (JD)</label><input id="svcDocCost" type="number"></div>
+              <div><label class="hint" data-i18n="active">Active</label><select id="svcActive"><option value="1">Yes</option><option value="0">No</option></select></div>
+            </div>
+            <div style="height:15px"></div>
+            
+            <div style="display:flex; gap:10px; align-items:center; justify-content:flex-end; margin-top:10px;">
+              <input id="importServicesFile" type="file" accept=".csv,text/csv" style="display:none" />
+              <button class="ghost" id="importServicesBtn" data-i18n="import_services_csv">Import Services CSV</button>
+            <select id="importDefaultCategory" class="select" style="margin-left:8px; min-width:190px;">
+              <option value="doctor">Import as: Doctor services</option>
+              <option value="staff" selected>Import as: Staff services</option>
+            </select>
+            <span class="hint" style="margin-left:8px;">(CSV can also include a <b>category</b> column)</span>
+            </div>
+<button class="primary" id="addServiceBtn" data-i18n="add_service">Add/Update</button>
+          </div>
+          <div class="card">
+            <h3 style="margin:0" data-i18n="all_services">List (Global + Local)</h3>
+            <div style="height:10px"></div>
+            <div class="tablewrap"><table id="servicesTable"></table></div>
+          </div>
+        </div>
+
+        <div id="view_users" class="hidden grid g2">
+          
+          <div class="card">
+            <h2 data-i18n="demo_tools">Demo Tools</h2>
+            <div class="muted" style="margin-top:-6px; margin-bottom:10px" data-i18n="demo_tools_note">Create sample data to test, then delete it.</div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="ghost" id="demoSeedBtn">Generate Demo Data</button>
+              <button class="ghost danger" id="demoClearBtn">Delete Demo Data</button>
+            </div>
+          </div>
+<div class="card">
+             <h2 data-i18n="create_user" style="margin-top:0">Manage Users</h2>
+             <div class="grid g2">
+               <div><label class="hint" data-i18n="user_email">Email</label><input id="uEmail"></div>
+               <div>
+                 <label class="hint" data-i18n="user_role">Role</label>
+                 <select id="uRole"><option value="viewer" data-i18n="viewer">Viewer</option><option value="admin" data-i18n="admin">Admin</option></select>
+               </div>
+               <div id="scopeBox" style="grid-column:1/-1; display:none; background:#f0f9ff; padding:15px; border-radius:10px; border:1px solid #bae6fd">
+                 <div class="hint" style="color:#0369a1;font-weight:700">Assign Report Access:</div>
+                 <div class="row" style="margin-bottom:10px"><label><input type="radio" name="uScopeType" value="staff" checked> Staff</label><label><input type="radio" name="uScopeType" value="doctor"> Doctor</label></div>
+                 <select id="uScopePerson" style="width:100%"></select>
+               </div>
+               <div style="grid-column:1/-1"><label class="hint" data-i18n="password">Password</label><input id="uPass" type="password"></div>
+             </div>
+             <div style="height:15px"></div>
+             <button class="primary" id="addUserBtn" data-i18n="add_user">Create User</button>
+             <div style="height:20px"></div>
+             <div class="tablewrap"><table id="usersTable"></table></div>
+          </div>
+          
+          <div class="card" style="border:1px solid #bae6fd; background:#f0f9ff">
+             <h2 data-i18n="data_mgmt" style="margin-top:0">Manage Data & Clinics</h2>
+             <div style="background:#fff; padding:15px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:15px">
+                 <div class="hint" style="font-weight:900; color:#3b82f6">Add New Clinic Branch:</div>
+                 <div class="row">
+                     <input id="newClinicName" placeholder="e.g. Downtown Branch" style="flex:1">
+                     <button onclick="addClinic()" class="primary">Add Clinic</button>
+                 </div>
+                 <div style="height:10px"></div>
+                 <div class="tablewrap"><table id="clinicsTable"></table></div>
+             </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- 1. CONFIGURATION (FIXED) ---
+const SUPABASE_URL = 'https://mhdhxzakukqsbaiuvwln.supabase.co'; 
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1oZGh4emFrdWtxc2JhaXV2d2xuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5NDE1MDAsImV4cCI6MjA4MjUxNzUwMH0.PZFte7f01yetnECsghOeCr3MRlsYWQ5PCgcj-JwvhDY';
+
+// --- 0. DOM HELPERS (FIX)
+// Some import UI code uses a tiny "$()" helper. In a previous refactor it
+// got removed which caused the whole script to error out (so Preview/Submit
+// did nothing). We add safe helpers back.
+// removed duplicate $ helper
+const $$ = (sel, root = document) => root.querySelector(sel);
+const $$$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+// FIX: We use 'sb' to avoid conflict with the 'supabase' library name.
+// IMPORTANT: some browsers/networks may block a CDN. We lazily ensure the
+// Supabase library is available, then create the client during boot.
+let sb = null;
+let SB = null; // legacy alias used across the app
+
+function showFatalBootError(msg){
+  try{
+    const box = document.getElementById('login_error') || document.getElementById('toast') || null;
+    if (box) {
+      box.textContent = msg;
+      box.style.display = 'block';
+    } else {
+      alert(msg);
+    }
+  }catch(e){
+    alert(msg);
+  }
+}
+
+function loadScript(src){
+  return new Promise((resolve, reject)=>{
+    const s=document.createElement('script');
+    s.src=src;
+    s.async=true;
+    s.onload=()=>resolve(true);
+    s.onerror=()=>reject(new Error('Failed to load '+src));
+    document.head.appendChild(s);
+  });
+}
+
+async function ensureSupabaseLib(){
+  // Prefer the bundled UMD from jsDelivr (fast + stable). If blocked, fall back to unpkg.
+  if (window.supabase && typeof window.supabase.createClient === "function") return;
+
+  const loadScript = (src, timeoutMs=7000) => new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = src;
+    s.async = true;
+    let done = false;
+    const t = setTimeout(() => {
+      if (done) return;
+      done = true;
+      s.remove();
+      reject(new Error("Timeout loading " + src));
+    }, timeoutMs);
+    s.onload = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(t);
+      resolve();
+    };
+    s.onerror = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(t);
+      s.remove();
+      reject(new Error("Failed loading " + src));
+    };
+    document.head.appendChild(s);
+  });
+
+  const candidates = [
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+    "https://unpkg.com/@supabase/supabase-js@2"
+  ];
+
+  let lastErr = null;
+  for (const src of candidates){
+    try{
+      await loadScript(src, 7000);
+      if (window.supabase && typeof window.supabase.createClient === "function") return;
+    }catch(e){ lastErr = e; }
+  }
+  throw (lastErr || new Error("Supabase library not available"));
+}
+
+// --- 2. GLOBAL STATE ---
+const I18N = {
+  "en": {
+    "app_title": "Clinic System", "app_sub": "Operations • Payroll • Reporting", "logout": "Logout", "login_title": "Login",
+    "email": "Email", "password": "Password", "login_btn": "Login", "init_admin": "Init Demo Admin",
+    "dashboard": "Dashboard", "daily_entry": "Daily Entry", "reports": "Reports", "staff": "Staff", "doctors": "Doctors",
+    "services": "Services", "staff_profile": "Statements", "users": "Users", "from": "From", "to": "To", "type": "Type",
+    "all": "All", "filter_person": "Filter Person", "group": "Group By", "run": "Generate", "export_csv": "Export CSV", 
+    "print_pdf": "Print / PDF", "date": "Date", "entry_type": "Entry Type", "service": "Service", "qty": "Qty", "paid_jd": "Paid (JD)", 
+    "cost_jd": "Cost (JD)", "total_payout": "Total Payout", "notes": "Notes", "add_entry": "Add Entry", "doctor": "Doctor", 
+    "customer": "Patient Name", "add_line": "Add Line", "clear_visit": "Clear", "save_visit": "Save Visit", "category": "Category", 
+    "staff_service": "Staff Service", "doctor_service": "Doctor Service", "service_name": "Service Name", "default_price": "Default Price",
+    "default_cost": "Default Cost", "fixed_per_op": "Fixed Payout", "active": "Active", "add_update": "Add/Update",
+    "all_services": "All Services", "name": "Name", "base_salary": "Base Salary", "ssn_deduction": "Social Security",
+    "add_staff": "Add/Update", "all_staff": "All Staff", "doctor_name": "Doctor Name", "note": "Note", "add_doctor": "Add/Update",
+    "all_doctors": "All Doctors", "create_user": "Manage Users", "user_email": "User email", "user_role": "Role",
+    "viewer": "Viewer", "admin": "Admin", "add_user": "Create User", "work_log": "Work Log", "salary_summary": "Summary",
+    "kpi_staff":"Staff", "kpi_docs":"Doctors", "kpi_services":"Services", "today_quick":"Today's Activity"
+  },
+  "ar": {
+    "app_title": "نظام العيادة", "app_sub": "العمليات والرواتب والتقارير", "logout": "خروج", "login_title": "دخول",
+    "email": "البريد", "password": "كلمة المرور", "login_btn": "دخول", "init_admin": "مدير تجريبي",
+    "dashboard": "الرئيسية", "daily_entry": "الإدخال اليومي", "reports": "التقارير", "staff": "الموظفون", "doctors": "الأطباء",
+    "services": "الخدمات", "staff_profile": "كشوفات الحساب", "users": "المستخدمين", "from": "من", "to": "إلى", "type": "النوع",
+    "all": "الكل", "filter_person": "تصفية الاسم", "group": "تجميع حسب", "run": "عرض", "export_csv": "تصدير", 
+    "print_pdf": "طباعة / PDF", "date": "التاريخ", "entry_type": "النوع", "service": "الخدمة", "qty": "العدد", "paid_jd": "المدفوع", 
+    "cost_jd": "التكلفة", "total_payout": "المستحق", "notes": "ملاحظات", "add_entry": "إضافة", "doctor": "طبيب", 
+    "customer": "المريض", "add_line": "إضافة سطر", "clear_visit": "مسح", "save_visit": "حفظ", "category": "فئة", 
+    "staff_service": "خدمة موظف", "doctor_service": "خدمة طبيب", "service_name": "اسم الخدمة", "default_price": "سعر", 
+    "default_cost": "تكلفة", "fixed_payout": "مستحق ثابت", "active": "فعال", "add_update": "إضافة", "all_services": "الخدمات", 
+    "name": "الاسم", "base_salary": "راتب أساسي", "ssn_deduction": "خصم ضمان", "add_staff": "إضافة/تحديث", "all_staff": "الموظفين", 
+    "doctor_name": "الطبيب", "note": "ملاحظة", "add_doctor": "إضافة/تحديث", "all_doctors": "الأطباء", "create_user": "إدارة المستخدمين", 
+    "user_email": "البريد", "user_role": "الصلاحية", "viewer": "مشاهد", "admin": "مدير", "add_user": "إضافة", "work_log": "سجل العمل", "salary_summary": "ملخص الراتب",
+    "kpi_staff":"الموظفون", "kpi_docs":"الأطباء", "kpi_services":"الخدمات", "today_quick":"نشاط اليوم"
+  }
+};
+let STATE = {users:[], staff:[], doctors:[], services:[], entries:[], adjustments:[], clinics:[], ui:{visitDraft:{}}};
+let SESSION = null;
+let CURR_CLINIC = null;
+let LANG = localStorage.getItem("clinic_v19_lang") || "en";
+// expose state for bulk grid modules (top-level let is not on window)
+window.STATE = STATE;
+window.CURR_CLINIC = CURR_CLINIC;
+window.SESSION = SESSION;
+
+
+// --- 3. HELPERS ---
+function $(id){return document.getElementById(id);}
+function t(k){ return (I18N[LANG]||I18N.en)[k] || k; }
+function uid(){return Date.now().toString(36) + Math.random().toString(36).substr(2);}
+function asNum(v){const n=parseFloat(v); return isNaN(n)?0:n;}
+function fmt(n){return asNum(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function startOfMonth(){ const d=new Date(); return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0,10); }
+function toast(msg){ const el=$("toast"); el.textContent=msg; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),3000); }
+
+let __audioCtx = null;
+function sfx(kind="ok"){
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    __audioCtx = __audioCtx || new AC();
+    const ctx = __audioCtx;
+    const now = ctx.currentTime;
+
+    const beep = (freq, t0, dur) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "sine";
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.12, t0 + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t0); o.stop(t0 + dur + 0.02);
+    };
+
+    if(kind === "ok"){
+      beep(880, now, 0.14);
+      beep(1175, now + 0.18, 0.16);
+    } else if(kind === "warn"){
+      beep(440, now, 0.20);
+    } else {
+      beep(220, now, 0.25);
+      beep(180, now + 0.28, 0.25);
+    }
+  }catch(e){}
+}
+
+async function sbInsert(table, payload, {successMsg, failPrefix} = {}){
+  try{
+    const res = await sb.from(table).insert(payload);
+    if(res.error) throw res.error;
+    if(successMsg){ toast(successMsg); sfx("ok"); }
+    return {ok:true, res};
+  }catch(err){
+    console.error("Insert failed:", table, err);
+    const msg = (failPrefix? (failPrefix + ": ") : "") + (err?.message || String(err));
+    toast(msg);
+    sfx("err");
+    return {ok:false, error: err};
+  }
+}
+
+async function sbInsertWithFallback(table, payload, fallbacks, opts){
+  // fallbacks: array of functions (p)=>p2
+  const attempts = [payload].concat((fallbacks||[]).map(fn=>fn({...payload})));
+  let lastErr=null;
+  for(const p of attempts){
+    const r = await sbInsert(table, p, opts);
+    if(r.ok) return r;
+    lastErr = r.error;
+  }
+  return {ok:false, error:lastErr};
+}
+async function hashPass(p,s){ const e=new TextEncoder().encode(s+":"+p); const b=await crypto.subtle.digest("SHA-256",e); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""); }
+function saveSession(s){
+  SESSION = s;
+  if(s) localStorage.setItem("clinic_v19_auth", JSON.stringify(s));
+  else localStorage.removeItem("clinic_v19_auth");
+}
+
+// --- 4. CLOUD SYNC (SMART VERSION) ---
+async function loadData(){
+    try {
+        $("loader").style.display="flex";
+        
+        // FETCH ALL TABLES FROM CLOUD (Using 'sb' instead of 'supabase')
+        const q = (p, name) => Promise.race([
+        p,
+        new Promise((_, rej) => setTimeout(() => rej(new Error('Timeout loading ' + name)), 12000))
+      ]);
+      const [cRes, sRes, dRes, svRes, eRes, adjRes] = await Promise.all([
+        q(sb.from('clinics').select('*'), 'clinics'),
+        q(sb.from('staff').select('*'), 'staff'),
+        q(sb.from('doctors').select('*'), 'doctors'),
+        q(sb.from('services').select('*'), 'services'),
+        q(sb.from('entries').select('*').order('date', { ascending: false }).limit(2000), 'entries'),
+        q(sb.from('adjustments').select('*').order('date', { ascending: false }).limit(2000), 'adjustments'),
+      ]);
+
+        // CHECK FOR ERRORS
+        if(cRes.error) throw new Error("Table 'clinics': " + cRes.error.message);
+        if(sRes.error) throw new Error("Table 'staff': " + sRes.error.message);
+        if(dRes.error) throw new Error("Table 'doctors': " + dRes.error.message);
+        if(svRes.error) throw new Error("Table 'services': " + svRes.error.message);
+        if(eRes.error) throw new Error("Table 'entries': " + eRes.error.message);
+        if(adjRes.error) throw new Error("Table 'adjustments': " + adjRes.error.message);
+
+        // ASSIGN DATA
+        if(cRes.data) STATE.clinics = cRes.data;
+        if(sRes.data) STATE.staff = sRes.data;
+        if(dRes.data) STATE.doctors = dRes.data;
+        if(svRes.data) STATE.services = svRes.data;
+        if(eRes.data) STATE.entries = eRes.data;
+        if(adjRes.data) STATE.adjustments = adjRes.data;
+
+        // Default Clinic Logic
+        if(STATE.clinics.length === 0){
+           const defId = "def";
+           await sb.from('clinics').insert({id:defId, name:"Main Clinic"}).select(); 
+           STATE.clinics = [{id:defId, name:"Main Clinic"}];
+        }
+        
+        if(!CURR_CLINIC && STATE.clinics.length > 0) CURR_CLINIC = STATE.clinics[0].id;
+    window.CURR_CLINIC = CURR_CLINIC;
+        
+        // Auth Check
+        const authStr = localStorage.getItem("clinic_v19_auth"); if(authStr) SESSION = JSON.parse(authStr);
+
+        renderClinicSelect();
+        window.STATE = STATE;
+    window.SESSION = SESSION;
+    renderAll();
+
+    } catch (err) {
+        alert("⚠️ CONNECTION ERROR:\n\n" + err.message + "\n\n(Check Supabase Tables & Disable RLS)");
+        console.error(err);
+    } finally {
+        $("loader").style.display="none";
+    }
+}
+
+// Helpers
+function getStaff(cid=CURR_CLINIC){ return STATE.staff.filter(s=> !s.clinic_id || s.clinic_id===cid); }
+function getDoctors(cid=CURR_CLINIC){ return STATE.doctors.filter(d=> !d.clinic_id || d.clinic_id===cid); }
+function getServices(cid=CURR_CLINIC){ return STATE.services.filter(s=> !s.clinic_id || s.clinic_id===cid); }
+function getEntries(cid=CURR_CLINIC){ return STATE.entries.filter(e=> e.clinic_id===cid); }
+
+// --- 5. RENDER LOGIC (UI) ---
+function renderClinicSelect(){
+    const sel = $("clinicSelect");
+    sel.innerHTML = STATE.clinics.map(c=>`<option value="${c.id}">${c.name}</option>`).join("");
+    if(CURR_CLINIC) sel.value = CURR_CLINIC;
+    sel.onchange = ()=>{ CURR_CLINIC = sel.value; renderAll(); };
+}
+
+function renderAll(){
+  if(SESSION){ $("authView").classList.add('hidden'); $("appView").classList.remove("hidden"); $("logoutBtn").classList.remove("hidden"); $("who").textContent=SESSION.role.toUpperCase(); }
+  else { $("authView").classList.remove('hidden'); $("appView").classList.add("hidden"); $("logoutBtn").classList.add("hidden"); return; }
+  initNav();
+  setView(ACTIVE_VIEW);
+
+  // Init Dates
+  if(!$("entryDate").value) $("entryDate").value = todayISO();
+  if(!$("repFrom").value) { $("repFrom").value = startOfMonth(); $("repTo").value = todayISO(); }
+  if(!$("prFrom").value) { $("prFrom").value = startOfMonth(); $("prTo").value = todayISO(); }
+
+  // Lists
+  const currStaff = getStaff();
+  const currDocs = getDoctors();
+  const currSvcs = getServices();
+
+  $("kpiStaff").textContent=currStaff.length; 
+  $("kpiDoctors").textContent=currDocs.length; 
+  $("kpiServices").textContent=currSvcs.length;
+
+  fillSelect($("entryStaff"), currStaff); 
+  fillSelect($("entryDoctor"), currDocs);
+  // Robust service filters (Supabase may return booleans as true/1/"true")
+  const _isActive = (v) => (v===true || v===1 || v==="1" || (typeof v==="string" && v.toLowerCase()==="true"));
+  const _cat = (v) => (v||"").toString().trim().toLowerCase();
+
+  fillSelect($("entryStaffService"), currSvcs.filter(s=> _isActive(s.active) && _cat(s.category)==="staff"));
+  fillSelect($("entryDoctorService"), currSvcs.filter(s=> _isActive(s.active) && _cat(s.category)==="doctor"));
+
+  // Profile dropdown
+  if($("profType")){ $("profType").onchange = updateProfileSelect; updateProfileSelect(); }
+  
+  // Reporting Dropdown
+  const peeps=[{id:"ALL",name:t("all")}];
+  currStaff.forEach(s=>peeps.push({id:"S:"+s.id,name:t("staff")+": "+s.name}));
+  currDocs.forEach(d=>peeps.push({id:"D:"+d.id,name:t("doctor")+": "+d.name}));
+  fillSelect($("repPerson"), peeps);
+  
+  updateCustomerHints();
+
+  if(ACTIVE_VIEW==="dashboard") renderTodayTable();
+  if(ACTIVE_VIEW==="daily") { renderDayTable(); toggleEntryType(); }
+  if(ACTIVE_VIEW==="staff") renderTable("staffTable", currStaff, ["name","base_salary","ss_deduction"], true, "staff");
+  if(ACTIVE_VIEW==="doctors") renderTable("docTable", currDocs, ["name","note"], true, "doctor");
+  if(ACTIVE_VIEW==="services") renderTable("servicesTable", currSvcs, ["name","category","default_price","active"], true, "service");
+  if(ACTIVE_VIEW==="users") { renderUsersTable(); renderClinicsTable(); }
+}
+
+
+// --- VIEW SWITCHING (FIX: make nav actually show/hide sections) ---
+function setView(viewId){
+  const views = ["dashboard","daily","reports","profiles","staff","doctors","services","users"];
+  views.forEach(v=>{
+    const el = $("view_"+v);
+    if(!el) return;
+    el.classList.toggle("hidden", v !== viewId);
+  });
+  ACTIVE_VIEW = viewId;
+  // Refresh nav active state
+  document.querySelectorAll("#nav button").forEach(btn=>btn.classList.remove("active"));
+  const btn = document.querySelector(`#nav button[data-view="${viewId}"]`);
+  if(btn) btn.classList.add("active");
+}
+
+// --- DASHBOARD: TODAY TABLE (missing in original) ---
+function renderTodayTable(){
+  const dt = todayISO();
+  const rows = getEntries().filter(e=>e.date===dt).slice().reverse();
+  const staffCount = rows.filter(r=>r.type==="staff").length;
+  const docCount = rows.filter(r=>r.type==="doctor").length;
+  $("todayPill").textContent = `${dt} • Staff: ${staffCount} • Doctor: ${docCount}`;
+  $("todayTable").innerHTML =
+    `<tr><th>Type</th><th>Who</th><th>Patient</th><th>Service</th><th class="right">Payout</th></tr>` +
+    (rows.length ? rows.map(e=>{
+      const who = e.type==="staff"
+        ? (STATE.staff.find(s=>s.id===e.staff_id)?.name || "-")
+        : (STATE.doctors.find(d=>d.id===e.doctor_id)?.name || "-");
+      const svc = STATE.services.find(s=>s.id===e.service_id)?.name || "-";
+      return `<tr><td>${e.type}</td><td>${who}</td><td>${e.customer||"-"}</td><td>${svc}</td><td class="right">${fmt(e.payout)}</td></tr>`;
+    }).join("") : `<tr><td colspan="5" style="color:#64748b">No entries today.</td></tr>`);
+}
+function fillSelect(sel, list){
+  const curr=sel.value;
+  sel.innerHTML=`<option value="">--</option>` + list.map(i=>`<option value="${i.id}">${i.name}</option>`).join("");
+  if(curr && [...sel.options].some(o=>o.value===curr)) sel.value=curr;
+}
+function updateProfileSelect(){
+    const type = $("profType").value;
+    fillSelect($("profilePerson"), type==="doctor" ? getDoctors() : getStaff());
+}
+function updateCustomerHints(){ $("customerHints").innerHTML = [...new Set(getEntries().map(e=>e.customer).filter(Boolean))].sort().map(h=>`<option value="${h}">`).join(""); }
+function renderTable(id, d, cols, act, type){
+  $(id).innerHTML = `<tr>${cols.map(c=>`<th>${t(c)||c}</th>`).join("")}${act?`<th>Action</th>`:""}</tr>` + 
+  d.map(r=>`<tr>${cols.map(c=>`<td>${r[c]===true?"Yes":r[c]===false?"No":r[c]||""}</td>`).join("")}${act?`<td><button class="danger" onclick="delItem('${type}','${r.id}')">🗑️</button></td>`:""}</tr>`).join("");
+}
+
+// --- 6. ACTIONS (CLOUD WRITES) ---
+window.addClinic = async () => {
+    const n=$("newClinicName").value; if(!n)return;
+    const { error } = await sb.from('clinics').insert({id:uid(), name:n});
+    if(!error){ toast("Clinic Added"); $("newClinicName").value=""; loadData(); }
+}
+window.delClinic = async (id) => {
+    if(confirm("Delete Clinic?")){
+        await sb.from('clinics').delete().eq('id', id);
+        loadData();
+    }
+}
+
+// Add Items
+$("addStaffBtn").onclick = async () => {
+  const n = ($("staffName").value || "").trim();
+  if(!n) return;
+  if(!CURR_CLINIC){ toast("Select a clinic first."); sfx("warn"); return; }
+
+  const payload = {
+    id: uid(),
+    clinic_id: CURR_CLINIC,
+    name: n,
+    base_salary: asNum($("staffSalary").value),
+    ss_deduction: asNum($("staffSSN").value),
+  };
+
+  // Fallbacks for when DB schema is missing columns (keeps app working instead of silently failing)
+  const fallbacks = [
+    (p)=>{ delete p.ss_deduction; return p; },
+    (p)=>{ delete p.base_salary; return p; },
+    (p)=>{ delete p.ss_deduction; delete p.base_salary; return p; },
+  ];
+
+  const r = await sbInsertWithFallback("staff", payload, fallbacks, {successMsg:"Staff Saved", failPrefix:"Staff not saved"});
+  if(!r.ok) return;
+
+  $("staffName").value=""; $("staffSalary").value=""; $("staffSSN").value="";
+  await loadData();
+}
+$("addDocBtn").onclick = async () => {
+  const n = ($("docName").value || "").trim();
+  if(!n) return;
+  if(!CURR_CLINIC){ toast("Select a clinic first."); sfx("warn"); return; }
+
+  const payload = { id: uid(), clinic_id: CURR_CLINIC, name: n, note: ($("docNote").value || "").trim() };
+  const r = await sbInsert("doctors", payload, {successMsg:"Doctor Saved", failPrefix:"Doctor not saved"});
+  if(!r.ok) return;
+
+  $("docName").value=""; $("docNote").value="";
+  await loadData();
+}
+$("addServiceBtn").onclick = async () => {
+  try {
+    const name = ($("svcName").value || "").trim();
+    if (!name) return alert("Service name is required.");
+
+    const payload = {
+      id: uid(),
+      clinic_id: CURR_CLINIC, // IMPORTANT: must match current clinic so it appears in Daily Entry
+      name,
+      category: (($("svcCategory").value || "staff").toString().trim().toLowerCase()),
+      default_price: asNum($("svcPrice").value),
+      staff_fixed: asNum($("svcFixed").value),
+      doctor_cost: asNum($("svcDocCost").value),
+      active: ($("svcActive").value === "1" || $("svcActive").value === 1 || $("svcActive").value === true)
+    };
+
+    const { error } = await sb.from("services").insert(payload);
+    if (error) {
+      console.error(error);
+      toast("Service not saved: " + (error.message || JSON.stringify(error))); sfx("err"); return;
+    }
+
+    $("svcName").value = "";
+    toast("Service Saved"); sfx("ok");
+    await loadData(); // refresh from cloud so it shows in the list + daily entry
+  } catch (err) {
+    console.error(err);
+    alert("Service save failed: " + (err?.message || err));
+  }
+}
+
+
+window.delItem = async (type, id) => {
+    if(!confirm("Delete?")) return;
+    let table = type==="staff"?"staff":type==="doctor"?"doctors":"services";
+    await sb.from(table).delete().eq('id', id);
+    loadData();
+}
+
+// Entries
+$("addEntryBtn").onclick = async () => {
+  if(!CURR_CLINIC){ toast("Select a clinic first."); sfx("warn"); return; }
+  const qty = Math.max(1, parseInt($("entryQty").value || "1", 10) || 1);
+  const fixed = asNum($("entryFixedPayout").value);
+  const payload = {
+    id: uid(),
+    clinic_id: CURR_CLINIC,
+    date: $("entryDate").value || todayISO(),
+    type: "staff",
+    staff_id: $("entryStaff").value || null,
+    service_id: $("entryStaffService").value || null,
+    qty,
+    fixed_per_op: fixed,
+    payout: qty * (fixed || 0),
+    note: ($("entryNoteStaff")?.value || "").trim()
+  };
+  const r = await sbInsert("entries", payload, {successMsg:"Entry Saved", failPrefix:"Entry not saved"});
+  if(!r.ok) return;
+  await loadData();
+}
+
+// Doctor Visit
+function toggleEntryType(){ const t=$("entryType").value; $("staffEntryBox").classList.toggle("hidden",t!=="staff"); $("doctorEntryBox").classList.toggle("hidden",t!=="doctor"); }
+$("entryType").onchange=toggleEntryType;
+$("entryStaffService").onchange=function(){ const s=STATE.services.find(x=>x.id===this.value); if(s)$("entryFixedPayout").value=s.staff_fixed||0; };
+$("entryDoctorService").onchange=function(){ const s=STATE.services.find(x=>x.id===this.value); if(s){ $("entryDocPrice").value=s.default_price; $("entryDocCost").value=""; $("entryDocCost").placeholder=s.doctor_cost?`Def: ${s.doctor_cost}`:""; } };
+
+function getDraftKey(){ return "draft"; } // Simplified draft for cloud version
+function ensureDraft(){ if(!STATE.ui.visitDraft[getDraftKey()]) STATE.ui.visitDraft[getDraftKey()]={lines:[]}; return STATE.ui.visitDraft[getDraftKey()]; }
+$("addLineBtn").onclick=()=>{
+  const s=$("entryDoctorService").value; if(!s) return alert("Select Service");
+  const qty=asNum($("entryDocQty").value,1), pr=asNum($("entryDocPrice").value), co=asNum($("entryDocCost").value||STATE.services.find(x=>x.id===s).doctor_cost||0);
+  const profit=(pr*qty)-(co*qty);
+  ensureDraft().lines.push({service_id:s,qty,price:pr,cost:co,profit,payout:profit*0.5});
+  renderVisitTable();
+};
+
+  // --- Services CSV Import (client-side) ---
+  (function setupServicesImport(){
+    const btn = $("importServicesBtn");
+    const fileInput = $("importServicesFile");
+    if(!btn || !fileInput) return;
+
+    const parseCSV = (text) => {
+      const lines = text.replace(/\r/g,'').split('\n').filter(l=>l.trim().length);
+      if(!lines.length) return [];
+      const sep = (lines[0].includes(';') && !lines[0].includes(',')) ? ';' : ',';
+      const headers = lines[0].split(sep).map(h=>h.trim().toLowerCase());
+      const rows = [];
+      for(let i=1;i<lines.length;i++){
+        const cols = lines[i].split(sep).map(c=>c.trim());
+        if(cols.every(c=>!c)) continue;
+        const obj = {};
+        headers.forEach((h,idx)=> obj[h] = (cols[idx] ?? "").trim());
+        rows.push(obj);
+      }
+      return rows;
+    };
+
+    btn.onclick = () => fileInput.click();
+
+    fileInput.onchange = async () => {
+      try{
+        const file = fileInput.files && fileInput.files[0];
+        fileInput.value = "";
+        if(!file) return;
+
+        const text = await file.text();
+        const rows = parseCSV(text);
+
+        if(!rows.length){
+          toast("No rows found in CSV.","warn");
+          return;
+        }
+
+        const payload = rows.map(r=>({
+          clinic_id: CURR_CLINIC,
+          name: (r.name || r.service || r.title || "").trim(),
+          category: (r.category || r.type || "staff").toLowerCase().includes("doctor") ? "doctor" : "staff",
+          price: num(r.price || r.amount || 0),
+          staff_fixed: num(r.staff_fixed || r.stafffixed || r.staff || 0),
+          doctor_cost: num(r.doctor_cost || r.doctorcost || r.doctor || 0),
+          active: (String(r.active ?? "1").trim() === "0" || String(r.active ?? "").toLowerCase()==="false") ? false : true
+        })).filter(x=>x.name);
+
+        if(!payload.length){
+          toast("CSV rows missing 'name' column.","warn");
+          return;
+        }
+
+        const { error } = await SB.from("services").insert(payload);
+        if(error) throw error;
+
+        await loadData();
+        toast(`Imported ${payload.length} services.`,"ok");
+      }catch(err){
+        console.error(err);
+        toast("Import failed: "+(err?.message||err),"err");
+      }
+    };
+  })();
+
+  // --- Demo data (generate + delete) ---
+  (function setupDemoTools(){
+    const seedBtn = $("demoSeedBtn");
+    const clearBtn = $("demoClearBtn");
+    if(!seedBtn || !clearBtn) return;
+
+    const rnd = (arr)=>arr[Math.floor(Math.random()*arr.length)];
+    const randName = ()=>{
+      const first=["Ali","Omar","Sara","Lina","Mona","Hadi","Yara","Noor","Tareq","Rami","Sami","Aya"];
+      const last=["Hassan","Khaled","Ahmad","Saleh","Nasser","Fares","Said","Karim","Yousef","Samir","Haddad"];
+      return `DEMO - ${rnd(first)} ${rnd(last)}`;
+    };
+    const randService = (kind)=>{
+      const base = kind==="doctor"
+        ? ["Consultation","Follow-up","X-Ray","Ultrasound","Surgery Fee","Injection"]
+        : ["Reception","Nursing","Lab Work","Cleaning","Assistant","Therapy"];
+      return `DEMO - ${rnd(base)} ${Math.floor(Math.random()*90+10)}`;
+    };
+    const todayISO = ()=> new Date().toISOString().slice(0,10);
+
+    seedBtn.onclick = async ()=>{
+      try{
+        if(!CURR_CLINIC){ toast("Select a clinic first.","warn"); return; }
+
+        // create staff + doctors
+        const staff = Array.from({length:5}).map(()=>({clinic_id:CURR_CLINIC, name: randName(), role:"staff", active:true}));
+        const doctors = Array.from({length:3}).map(()=>({clinic_id:CURR_CLINIC, name: randName(), specialty:"DEMO", active:true}));
+
+        // services
+        const services = [
+          ...Array.from({length:8}).map(()=>({clinic_id:CURR_CLINIC, name: randService("staff"), category:"staff", price: num(Math.floor(Math.random()*70+10)), staff_fixed:num(Math.floor(Math.random()*20+5)), doctor_cost:0, active:true})),
+          ...Array.from({length:6}).map(()=>({clinic_id:CURR_CLINIC, name: randService("doctor"), category:"doctor", price: num(Math.floor(Math.random()*120+30)), staff_fixed:0, doctor_cost:num(Math.floor(Math.random()*50+10)), active:true}))
+        ];
+
+        const r1 = await SB.from("staff").insert(staff).select();
+        if(r1.error) throw r1.error;
+        const r2 = await SB.from("doctors").insert(doctors).select();
+        if(r2.error) throw r2.error;
+        const r3 = await SB.from("services").insert(services).select();
+        if(r3.error) throw r3.error;
+
+        // refresh so IDs exist for entries
+        await loadData();
+
+        const currStaff = getStaff().filter(x=>String(x.name||"").startsWith("DEMO -"));
+        const currDocs = getDoctors().filter(x=>String(x.name||"").startsWith("DEMO -"));
+        const currSvcs = getServices().filter(x=>String(x.name||"").startsWith("DEMO -"));
+
+        const staffSvcs = currSvcs.filter(s=>s.category==="staff" && s.active);
+        const docSvcs = currSvcs.filter(s=>s.category==="doctor" && s.active);
+
+        const entries = [];
+        const daysBack=[0,1,2,3,4,5,6];
+        for(const d of daysBack){
+          const dt = new Date(); dt.setDate(dt.getDate()-d);
+          const dateISO = dt.toISOString().slice(0,10);
+          // 1-3 entries per day
+          const count = Math.floor(Math.random()*3)+1;
+          for(let i=0;i<count;i++){
+            const isDoc = Math.random()>0.55;
+            if(isDoc && currDocs.length && docSvcs.length){
+              const doc = rnd(currDocs);
+              const svc = rnd(docSvcs);
+              entries.push({
+                clinic_id:CURR_CLINIC,
+                date:dateISO,
+                kind:"doctor",
+                doctor_id:doc.id,
+                service_id:svc.id,
+                qty:1,
+                price: num(svc.price||0),
+                note:"DEMO ENTRY",
+              });
+            }else if(currStaff.length && staffSvcs.length){
+              const st = rnd(currStaff);
+              const svc = rnd(staffSvcs);
+              entries.push({
+                clinic_id:CURR_CLINIC,
+                date:dateISO,
+                kind:"staff",
+                staff_id:st.id,
+                service_id:svc.id,
+                qty:1,
+                price: num(svc.price||0),
+                note:"DEMO ENTRY",
+              });
+            }
+          }
+        }
+
+        if(entries.length){
+          const r4 = await SB.from("entries").insert(entries);
+          if(r4.error) throw r4.error;
+        }
+
+        await loadData();
+        toast("Demo data created.","ok");
+      }catch(err){
+        console.error(err);
+        toast("Demo failed: "+(err?.message||err),"err");
+      }
+    };
+
+    clearBtn.onclick = async ()=>{
+      try{
+        if(!CURR_CLINIC){ toast("Select a clinic first.","warn"); return; }
+
+        // delete entries first (FK)
+        await SB.from("entries").delete().eq("clinic_id",CURR_CLINIC).ilike("note","DEMO%");
+        await SB.from("services").delete().eq("clinic_id",CURR_CLINIC).ilike("name","DEMO -%");
+        await SB.from("staff").delete().eq("clinic_id",CURR_CLINIC).ilike("name","DEMO -%");
+        await SB.from("doctors").delete().eq("clinic_id",CURR_CLINIC).ilike("name","DEMO -%");
+
+        await loadData();
+        toast("Demo data deleted.","ok");
+      }catch(err){
+        console.error(err);
+        toast("Delete failed: "+(err?.message||err),"err");
+      }
+    };
+  })();
+
+
+function renderVisitTable(){
+  const d=STATE.ui.visitDraft[getDraftKey()]||{lines:[]};
+  $("visitLinesTable").innerHTML = `<tr><th>Svc</th><th>Qty</th><th>Paid</th><th>Cost</th><th>Pay</th><th>X</th></tr>` + 
+  d.lines.map((l,i)=>`<tr><td>${STATE.services.find(s=>s.id===l.service_id)?.name}</td><td>${l.qty}</td><td>${l.price}</td><td>${l.cost}</td><td>${l.payout}</td><td><button class="danger" onclick="remLine(${i})">x</button></td></tr>`).join("");
+}
+window.remLine=i=>{ ensureDraft().lines.splice(i,1); renderVisitTable(); };
+
+$("saveVisitBtn").onclick = async () => {
+    const d=STATE.ui.visitDraft[getDraftKey()]; if(!d||!d.lines.length) return;
+    const vid=uid();
+    const rows = d.lines.map(l => ({
+        id:uid(), clinic_id:CURR_CLINIC, date:$("entryDate").value, type:"doctor",
+        visit_id:vid, doctor_id:$("entryDoctor").value, customer:$("entryCustomer").value,
+        note:$("entryNoteDoctor").value, service_id:l.service_id,
+        qty:l.qty, price:l.price, cost:l.cost, payout:l.payout
+    }));
+    await sb.from('entries').insert(rows);
+    delete STATE.ui.visitDraft[getDraftKey()];
+    renderVisitTable(); $("entryCustomer").value="";
+    toast("Visit Saved"); loadData();
+}
+
+$("entryDate").onchange=()=>{ renderDayTable(); };
+function renderDayTable(){ 
+  const dt=$("entryDate").value, lst=getEntries().filter(e=>e.date===dt).reverse();
+  $("dayTable").innerHTML = `<tr><th>Time</th><th>Who</th><th>Customer</th><th>Svc</th><th>Pay</th><th>X</th></tr>` + lst.map(e=>`<tr><td>${e.date}</td><td>${e.type==="staff"?STATE.staff.find(s=>s.id===e.staff_id)?.name:STATE.doctors.find(d=>d.id===e.doctor_id)?.name}</td><td>${e.customer||"-"}</td><td>${STATE.services.find(s=>s.id===e.service_id)?.name}</td><td>${fmt(e.payout)}</td><td><button class="danger" onclick="delEntry('${e.id}')">x</button></td></tr>`).join("");
+}
+window.delEntry = async (id) => {
+    if(confirm("Del?")){ await sb.from('entries').delete().eq('id',id); loadData(); }
+}
+
+// --- 7. REPORTS & STATEMENTS ---
+// Copied almost exactly from v19, just adapted data access
+$("runReportBtn").onclick=()=>{
+  const f=$("repFrom").value, toD=$("repTo").value; if(!f||!toD) return alert("Dates?");
+  const type=$("repType").value, person=$("repPerson").value;
+  const scope = document.querySelector('input[name="repScope"]:checked').value;
+  let rows=[];
+  let filtered = STATE.entries.filter(e=>e.date>=f && e.date<=toD);
+  if(scope==="current"){ filtered = filtered.filter(e=>e.clinic_id===CURR_CLINIC); $("printClinicName").textContent = STATE.clinics.find(c=>c.id===CURR_CLINIC)?.name; }
+  else { $("printClinicName").textContent = "ALL CLINICS - CONSOLIDATED"; }
+
+  if(type==="all" || type==="doctor"){
+    let docs = filtered.filter(e=>e.type==="doctor");
+    if(person && person!=="ALL"){ const pid = person.includes(":") ? person.split(":")[1] : person; docs = docs.filter(e=>e.doctor_id===pid); }
+    const vMap={};
+    docs.forEach(e=>{
+      const vid=e.visit_id||e.id;
+      if(!vMap[vid]) vMap[vid]={date:e.date,kind:"doctor",who:STATE.doctors.find(x=>x.id===e.doctor_id)?.name,customer:e.customer,svcs:[],paid:0,payout:0, cname:STATE.clinics.find(c=>c.id===e.clinic_id)?.name};
+      vMap[vid].svcs.push({n:STATE.services.find(s=>s.id===e.service_id)?.name, q:e.qty, p:e.price, c:e.cost, pay:e.payout});
+      vMap[vid].paid+=asNum(e.price)*asNum(e.qty); vMap[vid].payout+=asNum(e.payout);
+    });
+    Object.values(vMap).forEach(v=>{
+      let desc = v.svcs.map(s=>`• ${s.n} (${s.q}) - Paid: ${fmt(s.p*s.q)} | Net: ${fmt(s.pay)}`).join("<br>");
+      if(scope==="all") desc = `<b style='color:#3b82f6'>[${v.cname}]</b><br>` + desc;
+      rows.push({date:v.date, kind:"doctor", who:v.who, customer:v.customer, svc:desc, paid:v.paid, payout:v.payout});
+    });
+  }
+  if(type==="all" || type==="staff"){
+    let stf = filtered.filter(e=>e.type==="staff");
+    if(person && person!=="ALL"){ const pid = person.includes(":") ? person.split(":")[1] : person; stf = stf.filter(e=>e.staff_id===pid); }
+    stf.forEach(e=>{
+      let svcName = STATE.services.find(s=>s.id===e.service_id)?.name;
+      if(scope==="all") svcName = `<b style='color:#3b82f6'>[${STATE.clinics.find(c=>c.id===e.clinic_id)?.name}]</b> ` + svcName;
+      rows.push({ date:e.date, kind:"staff", who:STATE.staff.find(s=>s.id===e.staff_id)?.name, customer:"", svc:svcName, paid:"", payout:asNum(e.payout) });
+    });
+  }
+  rows.sort((a,b)=>a.date.localeCompare(b.date));
+  $("printMeta").textContent=`${f} -> ${toD}`; $("printDate").textContent = todayISO();
+  $("reportTable").innerHTML = `<tr><th>Date</th><th>Who</th><th>Customer</th><th>Details</th><th class="right">Paid</th><th class="right">Payout</th></tr>` +
+  rows.map(r=>`<tr class="${r.kind==="doctor"?"doc-row":"staff-row"}"><td class="mono">${r.date}</td><td>${r.who}</td><td>${r.customer||"-"}</td><td class="opLine">${r.svc}</td><td class="right">${r.kind==="doctor"?fmt(r.paid):"-"}</td><td class="right">${fmt(r.payout)}</td></tr>`).join("");
+  const total = rows.reduce((a,b)=>a+asNum(b.payout),0);
+  $("reportSummary").innerHTML = `<div style="font-size:20px;font-weight:900;text-align:right;margin-bottom:10px">${t("total_payout")}: ${fmt(total)}</div>`;
+};
+$("printBtn").onclick=()=>window.print();
+$("printSlipBtn").onclick=()=>window.print();
+
+// Statement Logic
+$("calcProfileBtn").onclick=renderStatement;
+function renderStatement(){
+  const pid=$("profilePerson").value, f=$("prFrom").value, toD=$("prTo").value, type=$("profType").value;
+  if(!pid||!f||!toD) return alert("Select person & dates");
+  $("salarySlipCard").style.display="block";
+  const content = $("statementContent"); content.innerHTML = ""; 
+  $("slipDateStr").textContent = todayISO(); $("slipClinicName").textContent = STATE.clinics.find(c=>c.id===CURR_CLINIC)?.name;
+
+  if(type==="staff"){
+      const staff = STATE.staff.find(s=>s.id===pid);
+      $("slipTitle").textContent = "Salary Statement"; $("slipMeta").textContent = `${staff.name} | ${f} to ${toD}`;
+      const log = STATE.entries.filter(e=>e.type==="staff" && e.staff_id===pid && e.date>=f && e.date<=toD);
+      const adjs = STATE.adjustments.filter(a=>a.staff_id===pid && a.date>=f && a.date<=toD);
+      
+      let comms = 0;
+      let logHtml = `<h3 class="noPrint" style="margin-bottom:10px">Work Log</h3><div class="tablewrap"><table><tr><th>Date</th><th>Service</th><th>Qty</th><th class="right">Rate</th><th class="right">Total</th></tr>`;
+      log.forEach(e=>{
+          const svcName = STATE.services.find(s=>s.id===e.service_id)?.name || "Unknown";
+          comms += asNum(e.payout);
+          logHtml += `<tr><td>${e.date}</td><td>${svcName}</td><td>${e.qty}</td><td class="right">${fmt(e.fixed_per_op)}</td><td class="right">${fmt(e.payout)}</td></tr>`;
+      });
+      logHtml += `</table></div>
+      ${rows.length>SHOW_LIMIT?`<div style="margin-top:8px;font-size:12px;opacity:.75">Showing first ${SHOW_LIMIT} rows of ${rows.length}. Tip: use CSV import for very large sheets.</div>`:""}`;
+      
+      const base = asNum(staff.base_salary); const ss = asNum(staff.ss_deduction);
+      let bonus=0, ded=0, adjHtml = "";
+      adjs.forEach(a=>{
+          const val = asNum(a.amount);
+          if(a.type==="bonus") { bonus+=val; adjHtml += `<div class="slip-row"><span>+ ${a.note}</span><span>${fmt(val)}</span></div>`; }
+          else { ded+=val; adjHtml += `<div class="slip-row" style="color:var(--bad)"><span>- ${a.note}</span><span>(${fmt(val)})</span></div>`; }
+      });
+      const net = base + comms + bonus - ss - ded;
+      content.innerHTML = `
+        <div class="slip-grid" style="margin-top:25px">
+          <div>${logHtml}</div>
+          <div>
+            <h3 class="noPrint">Summary</h3>
+            <div class="slip-summary-box">
+              <div class="slip-row"><span>Base Salary</span><span>${fmt(base)}</span></div>
+              <div class="slip-row"><span>Commissions</span><span>${fmt(comms)}</span></div>
+              <div class="slip-row" style="color:var(--bad)"><span>Social Security</span><span>(${fmt(ss)})</span></div>
+              ${adjHtml}
+              <div class="slip-row total"><span>NET PAYABLE</span><span>${fmt(net)}</span></div>
+            </div>
+            <div class="noPrint" style="margin-top:15px;padding-top:10px;border-top:1px dashed #ccc">
+               <div class="grid g2" style="gap:5px"><select id="adjType"><option value="bonus">Bonus (+)</option><option value="deduction">Deduction (-)</option></select><input id="adjAmt" type="number" placeholder="Amt"><input id="adjNote" placeholder="Reason" style="grid-column:1/-1"></div>
+               <button id="addAdjBtn" style="width:100%;margin-top:5px;font-size:11px">+ Add Item</button>
+            </div>
+          </div>
+        </div>`;
+        
+      $("addAdjBtn").onclick = async ()=>{
+          const amt=$("adjAmt").value, note=$("adjNote").value, at=$("adjType").value;
+          if(!amt||!note) return alert("Fill fields");
+          await sb.from('adjustments').insert({id:uid(), staff_id:pid, date:todayISO(), type:at, amount:amt, note});
+          renderStatement(); toast("Saved"); loadData();
+      };
+  } else {
+      const doc = STATE.doctors.find(d=>d.id===pid);
+      $("slipTitle").textContent = "Payout Statement"; $("slipMeta").textContent = `${doc.name} | ${f} to ${toD}`;
+      let rows = STATE.entries.filter(e=>e.type==="doctor" && e.doctor_id===pid && e.date>=f && e.date<=toD);
+      const vMap={};
+      rows.forEach(e=>{
+        const vid=e.visit_id||e.id;
+        if(!vMap[vid]) vMap[vid]={date:e.date, customer:e.customer, svcs:[], paid:0, cost:0, payout:0};
+        vMap[vid].svcs.push(STATE.services.find(s=>s.id===e.service_id)?.name);
+        vMap[vid].paid += asNum(e.price)*asNum(e.qty);
+        vMap[vid].cost += asNum(e.cost)*asNum(e.qty);
+        vMap[vid].payout += asNum(e.payout);
+      });
+      let totRev=0, totPay=0;
+      let html = `<div class="tablewrap"><table><tr><th>Date</th><th>Patient</th><th>Services</th><th class="right">Revenue</th><th class="right">Lab Cost</th><th class="right">Doctor Share</th></tr>`;
+      Object.values(vMap).forEach(v=>{
+          totRev+=v.paid; totPay+=v.payout;
+          html += `<tr><td>${v.date}</td><td>${v.customer||"-"}</td><td>${v.svcs.join(", ")}</td><td class="right">${fmt(v.paid)}</td><td class="right">${fmt(v.cost)}</td><td class="right" style="font-weight:bold">${fmt(v.payout)}</td></tr>`;
+      });
+      html += `<tr style="font-weight:900;background:#f0f9ff"><td colspan="3">TOTALS</td><td class="right">${fmt(totRev)}</td><td></td><td class="right">${fmt(totPay)}</td></tr></table></div>
+      ${rows.length>SHOW_LIMIT?`<div style="margin-top:8px;font-size:12px;opacity:.75">Showing first ${SHOW_LIMIT} rows of ${rows.length}. Tip: use CSV import for very large sheets.</div>`:""}`;
+      content.innerHTML = html;
+  }
+}
+
+// --- 8. USERS & AUTH ---
+function renderClinicsTable(){ $("clinicsTable").innerHTML = `<tr><th>Name</th><th>ID</th><th>X</th></tr>` + STATE.clinics.map(c=>`<tr><td>${c.name}</td><td>${c.id}</td><td>${c.id==="def"?"-":`<button class="danger" onclick="delClinic('${c.id}')">x</button>`}</td></tr>`).join(""); }
+function renderUsersTable(){ $("usersTable").innerHTML = `<tr><th>Email</th><th>Role</th><th>X</th></tr>` + STATE.users.map(u=>`<tr><td>${u.email}</td><td>${u.role}</td><td><button class="danger" onclick="delUser('${u.email}')">x</button></td></tr>`).join(""); }
+
+$("addUserBtn").onclick = async () => {
+  try {
+    const email = ($("uEmail")?.value || "").trim();
+    const pass  = ($("uPass")?.value || "").trim();
+    const role  = ($("uRole")?.value || "viewer").trim();
+    const scopeType   = ($("uScopeType")?.value || "all").trim();
+    const scopePerson = ($("uScopePerson")?.value || "").trim();
+
+    if (!email) return toast("Please enter an email.", "error");
+    if (!pass || pass.length < 6) return toast("Password must be at least 6 characters.", "error");
+
+    // Create user via Edge Function (server-side, safe)
+    setBusy?.(true);
+    const { data, error } = await sb.functions.invoke("clinic-admin-users", {
+      body: { action: "create", email, password: pass, role, scopeType, scopePerson }
+    });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+
+    toast("User created ✅", "success");
+
+    // Clear fields
+    if ($("uEmail")) $("uEmail").value = "";
+    if ($("uPass")) $("uPass").value = "";
+    if ($("uRole")) $("uRole").value = "viewer";
+
+    // Refresh user list if function exists
+    if (typeof loadUsers === "function") await loadUsers();
+  } catch (e) {
+    toast(e?.message || "Failed to create user.", "error");
+  } finally {
+    setBusy?.(false);
+  }
+};
+window.delUser = () => alert("User deletion is disabled in Secure Mode. Manage users in Supabase → Authentication → Users.");
+$("loginBtn").onclick = async () => {
+  const email = $("email").value.trim();
+  const password = $("password").value;
+
+  // 1) Supabase Auth login
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) return alert(error.message);
+
+  // 2) Get role from app_users table
+  const { data: me, error: meErr } = await sb
+    .from("app_users")
+    .select("role,email")
+    .eq("id", data.user.id)
+    .single();
+
+  if (meErr) return alert(meErr.message);
+
+  // 3) Store a small session object locally (role only for UI)
+  saveSession({ role: me.role, email: me.email || email, auth_id: data.user.id });
+
+  renderAll();
+};
+
+$("initBtn").onclick = () => alert("Init Admin is disabled in Secure Mode. Create users in Supabase → Authentication → Users.");
+$("logoutBtn").onclick = async () => {
+  await sb.auth.signOut();
+  saveSession(null);
+  renderAll();
+};
+
+// --- 9. APP INIT ---
+let ACTIVE_VIEW = "dashboard";
+function initNav(){
+    const NAV=[
+      {id:"dashboard",lbl:"dashboard",icon:"🏠"},
+      {id:"daily",lbl:"daily_entry",icon:"📝"},
+      {id:"reports",lbl:"reports",icon:"📊"},
+      {id:"staff",lbl:"staff",icon:"👥"},
+      {id:"doctors",lbl:"doctors",icon:"👨‍⚕️"},
+      {id:"services",lbl:"services",icon:"⚙️"},
+      {id:"profiles",lbl:"staff_profile",icon:"🧾"},
+      {id:"users",lbl:"create_user",adminOnly:true,icon:"🔒"}
+    ];
+    const navBox=$("nav");
+    if(!navBox) return;
+    navBox.innerHTML="";
+    NAV.forEach(n=>{
+        if(n.adminOnly && (!SESSION || SESSION.role!=="admin")) return;
+        const btn=document.createElement("button");
+        btn.dataset.view = n.id;
+        btn.innerHTML=`<span class="nav-icon">${n.icon}</span> ${t(n.lbl)}`;
+        if(ACTIVE_VIEW===n.id) btn.classList.add("active");
+        btn.onclick=()=>{ setView(n.id); renderAll(); };
+        navBox.appendChild(btn);
+    });
+}
+function applyLang(){
+  document.documentElement.lang=(LANG==="ar"?"ar":"en"); document.documentElement.dir=(LANG==="ar"?"rtl":"ltr");
+  document.querySelectorAll("[data-i18n]").forEach(el=> el.textContent = t(el.getAttribute("data-i18n")));
+  $("langBtn").textContent = (LANG==="ar"?"English":"العربية");
+  renderAll();
+}
+$("langBtn").onclick=()=>{LANG=(LANG==="en"?"ar":"en");localStorage.setItem("clinic_v19_lang",LANG);applyLang();};
+
+// --- EXPORT/IMPORT (BACKUP) ---
+window.exportData = () => {
+  const blob = new Blob([JSON.stringify(STATE)], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href=url; a.download="clinic_cloud_backup_"+todayISO()+".json"; a.click();
+};
+window.importData = async () => {
+    // Note: Importing to cloud is tricky as it overwrites tables. 
+    // Simplified: We warn user this feature is local-logic only or requires server-side wipe.
+    alert("Restore from backup is disabled in Cloud Mode for safety.\nPlease ask your developer if you need to bulk-restore data.");
+};
+
+// --- SERVICES CSV IMPORT (works on Netlify) ---
+function _svcBool(v){
+  if (v === true || v === 1 || v === "1") return true;
+  const s = (v ?? "").toString().trim().toLowerCase();
+  return s === "true" || s === "yes" || s === "y";
+}
+function _svcCat(v){
+  const s = (v ?? "").toString().trim().toLowerCase();
+  return s === "doctor" ? "doctor" : "staff";
+}
+function _csvSplitLine(line){
+  // Simple CSV splitter that supports quoted fields
+  const out = [];
+  let cur = "", q = false;
+  for(let i=0;i<line.length;i++){
+    const ch = line[i];
+    if(ch === '"' ){
+      if(q && line[i+1] === '"'){ cur += '"'; i++; }
+      else q = !q;
+    } else if(ch === ',' && !q){
+      out.push(cur); cur = "";
+    } else {
+      cur += ch;
+    }
+  }
+  out.push(cur);
+  return out.map(x => x.trim());
+}
+async function importServicesCSVText(csvText){
+  const lines = (csvText || "").split(/\r?\n/).filter(l => l.trim().length);
+  if(lines.length < 2) throw new Error("CSV is empty. Add a header row and at least 1 service.");
+
+  const headers = _csvSplitLine(lines[0]).map(h => h.toLowerCase());
+  const col = (name) => headers.indexOf(name);
+
+  const idxName = col("name");
+  if(idxName < 0) throw new Error("CSV must include a 'name' column.");
+
+  const idxCategory = col("category");
+  const idxPrice = col("price") >= 0 ? col("price") : col("default_price");
+  const idxFixed = col("staff_fixed") >= 0 ? col("staff_fixed") : col("fixed_per_op");
+  const idxDocCost = col("doctor_cost") >= 0 ? col("doctor_cost") : col("default_cost");
+  const idxActive = col("active");
+
+  const rows = [];
+  for(let i=1;i<lines.length;i++){
+    const cols = _csvSplitLine(lines[i]);
+    const name = (cols[idxName] ?? "").trim();
+    if(!name) continue;
+
+    rows.push({
+      id: uid(),
+      clinic_id: CURR_CLINIC,
+      name,
+      category: _svcCat(idxCategory >= 0 ? cols[idxCategory] : "staff"),
+      default_price: asNum(idxPrice >= 0 ? cols[idxPrice] : 0),
+      staff_fixed: asNum(idxFixed >= 0 ? cols[idxFixed] : 0),
+      doctor_cost: asNum(idxDocCost >= 0 ? cols[idxDocCost] : 0),
+      active: idxActive >= 0 ? _svcBool(cols[idxActive]) : true
+    });
+  }
+
+  if(!rows.length) throw new Error("No valid rows found (make sure 'name' is filled).");
+
+  // Insert in batches
+  const batchSize = 200;
+  for(let i=0;i<rows.length;i+=batchSize){
+    const batch = rows.slice(i, i+batchSize);
+    const { error } = await sb.from("services").insert(batch);
+    if(error) throw new Error(error.message || JSON.stringify(error));
+  }
+  return rows.length;
+}
+
+// Wire UI
+(function wireServicesImport(){
+  const btn = $("importServicesBtn");
+  const input = $("importServicesFile");
+  if(!btn || !input) return;
+
+  btn.onclick = () => { input.value = ""; input.click(); };
+
+  input.onchange = async () => {
+    const file = input.files?.[0];
+    if(!file) return;
+
+    try{
+      $("loader").style.display="flex";
+      const text = await file.text();
+      const n = await importServicesCSVText(text);
+      toast(`Imported ${n} services`);
+      await loadData();
+    } catch(err){
+      console.error(err);
+      alert("Import failed: " + (err?.message || err));
+    } finally {
+      $("loader").style.display="none";
+      input.value = "";
+    }
+  };
+})();
+
+
+
+// Safety: if any unexpected JS error happens, never keep loader stuck forever.
+window.addEventListener('error', () => { try { $("loader").style.display="none"; } catch(e){} });
+window.addEventListener('unhandledrejection', () => { try { $("loader").style.display="none"; } catch(e){} });
+
+// Boot sequence (never leave the UI stuck on "buffering")
+(async () => {
+  try {
+    // Make sure the Supabase lib is available (fallback if a CDN is blocked)
+    await ensureSupabaseLib();
+
+    // Create the client once, then reuse everywhere
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    SB = sb;
+
+    initNav();
+    applyLang();
+
+    // Restore local UI session (role/email for display)
+    try {
+      const authStr = localStorage.getItem("clinic_v19_auth");
+      if (authStr) SESSION = JSON.parse(authStr);
+    } catch (e) {
+      SESSION = null;
+    }
+
+    // Verify auth quickly (with a timeout) then load.
+    const withTimeout = (p, ms) => Promise.race([
+      p,
+      new Promise((_, rej) => setTimeout(() => rej(new Error("Supabase timeout")), ms))
+    ]);
+
+    const { data: authData } = await withTimeout(sb.auth.getSession(), 8000).catch(() => ({ data: null }));
+    if (!authData?.session) saveSession(null);
+
+    await loadData();
+  } catch (err) {
+    console.error("BOOT ERROR:", err);
+    try {
+      $("loader").style.display = "none";
+      const box = document.createElement('div');
+      box.style.cssText = 'max-width:720px;margin:40px auto;padding:18px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.06);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial';
+      box.innerHTML = '<h3 style="margin:0 0 8px;font-size:18px">App failed to start</h3>' +
+        '<div style="color:#6b7280;margin-bottom:12px">This is usually caused by the Supabase CDN being blocked or a network issue.</div>' +
+        '<pre style="white-space:pre-wrap;background:#0b1020;color:#e5e7eb;padding:12px;border-radius:10px;overflow:auto;max-height:220px">' + (err?.message || String(err)) + '</pre>' +
+        '<button id="retryBoot" style="margin-top:12px;padding:10px 14px;border-radius:10px;border:0;background:#2563eb;color:#fff;font-weight:700;cursor:pointer">Retry</button>';
+      document.body.prepend(box);
+      document.getElementById('retryBoot').onclick = () => location.reload();
+    } catch(e) {}
+  }
+})();
+</script>
+
+<script>
+/* ===== v19 Hotfix: services refresh + CSV export + import wiring + safe user role lookup ===== */
+(function(){
+  // Guard helpers
+// removed duplicate $ helper
+
+  // Busy overlay (non-invasive)
+  window.setBusy = window.setBusy || function(isBusy){
+    try {
+      const el = $("busyOverlay");
+      if (!el) return;
+      el.style.display = isBusy ? "flex" : "none";
+    } catch(_) {}
+  };
+
+  // Robust CSV download helper
+  function csvEscape(v){
+    if (v === null || v === undefined) return "";
+    const s = String(v);
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+  }
+  function downloadCSV(filename, rows){
+    const csv = rows.map(r => r.map(csvEscape).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  }
+  function tableToRows(table){
+    if (!table) return null;
+    const rows = [];
+    const head = table.querySelectorAll("thead th");
+    if (head && head.length){
+      rows.push(Array.from(head).map(th => th.textContent.trim()));
+    }
+    const bodyRows = table.querySelectorAll("tbody tr");
+    Array.from(bodyRows).forEach(tr=>{
+      const cols = tr.querySelectorAll("td");
+      if (!cols.length) return;
+      rows.push(Array.from(cols).map(td => td.textContent.trim()));
+    });
+    return rows;
+  }
+
+  // Wire EXPORT buttons if they exist
+  function wireExports(){
+    const exportDayBtn = $("exportDayBtn");
+    if (exportDayBtn && !exportDayBtn.__wired){
+      exportDayBtn.__wired = true;
+      exportDayBtn.addEventListener("click", ()=>{
+        const table = $("dayTable") || document.querySelector("#view_daily table");
+        const rows = tableToRows(table);
+        if (!rows || rows.length < 2) return toast("No data to export.", "error");
+        downloadCSV(`daily_entry_${new Date().toISOString().slice(0,10)}.csv`, rows);
+      });
+    }
+
+    const exportReportBtn = $("exportReportBtn");
+    if (exportReportBtn && !exportReportBtn.__wired){
+      exportReportBtn.__wired = true;
+      exportReportBtn.addEventListener("click", ()=>{
+        const table = $("reportTable") || document.querySelector("#view_reports table");
+        const rows = tableToRows(table);
+        if (!rows || rows.length < 2) return toast("No report data to export.", "error");
+        downloadCSV(`report_${new Date().toISOString().slice(0,10)}.csv`, rows);
+      });
+    }
+
+    const exportSlipBtn = $("exportSlipBtn");
+    if (exportSlipBtn && !exportSlipBtn.__wired){
+      exportSlipBtn.__wired = true;
+      exportSlipBtn.addEventListener("click", ()=>{
+        const container = $("statementContent") || $("salarySlipCard");
+        if (!container) return toast("No slip to export.", "error");
+        const table = container.querySelector("table");
+        let rows = tableToRows(table);
+        if (!rows){
+          // fallback: simple key/value extraction
+          rows = [["Field","Value"]];
+          container.querySelectorAll("p,div").forEach(el=>{
+            const t = el.textContent.trim();
+            if (t && t.includes(":")){
+              const [k,...rest]=t.split(":");
+              rows.push([k.trim(), rest.join(":").trim()]);
+            }
+          });
+        }
+        if (rows.length < 2) return toast("No slip data to export.", "error");
+        downloadCSV(`salary_slip_${new Date().toISOString().slice(0,10)}.csv`, rows);
+      });
+    }
+  }
+
+  // SERVICES: refresh lists after add/import and when entering daily entry
+  async function refreshServicesEverywhere(){
+    try{
+      if (typeof loadServices === "function") await loadServices();
+      if (typeof populateServiceDropdown === "function") await populateServiceDropdown();
+      if (typeof populateServicesDropdown === "function") await populateServicesDropdown();
+      // common IDs used in v19
+      const svcSelects = document.querySelectorAll('select[data-services], select.serviceSelect, select[name="service"], #entryService, #serviceSelect');
+      svcSelects.forEach(sel=>{ /* populated by existing code */ });
+    }catch(_){}
+  }
+
+  // After saving a service, clear inputs to prevent mistakes
+  function wireServiceFormResets(){
+    const btn = $("saveServiceBtn") || $("addServiceBtn");
+    if (btn && !btn.__wired){
+      btn.__wired = true;
+      btn.addEventListener("click", async ()=>{
+        // give existing handler time to run; then refresh and clear if success toast occurred
+        setTimeout(async ()=>{
+          await refreshServicesEverywhere();
+          const name = $("svcName") || $("serviceName") || $("service_name");
+          const price = $("svcPrice") || $("servicePrice") || $("service_price");
+          const type = $("svcType") || $("serviceType") || $("service_type");
+          if (name) name.value = "";
+          if (price) price.value = "";
+          if (type && type.tagName === "SELECT") type.selectedIndex = 0;
+        }, 600);
+      });
+    }
+  }
+
+  // DAILY ENTRY: clear inputs after save
+  function wireDailyEntryReset(){
+    const btn = $("saveEntryBtn") || $("addEntryBtn");
+    if (btn && !btn.__wired){
+      btn.__wired = true;
+      btn.addEventListener("click", ()=>{
+        setTimeout(()=>{
+          const inputs = document.querySelectorAll("#view_daily input, #view_daily select, #view_daily textarea");
+          inputs.forEach(el=>{
+            if (!el) return;
+            if (el.type === "checkbox" || el.type === "radio") el.checked = false;
+            else if (el.tagName === "SELECT") el.selectedIndex = 0;
+            else el.value = "";
+          });
+        }, 600);
+      });
+    }
+  }
+
+  // IMPORT SERVICES button wiring
+  function wireServiceImport(){
+    const btn = $("importServicesBtn");
+    const input = $("importServicesFile");
+    if (!btn || !input) return;
+
+    if (!btn.__wired){
+      btn.__wired = true;
+      btn.addEventListener("click", ()=> input.click());
+    }
+
+    if (!input.__wired){
+      input.__wired = true;
+      input.addEventListener("change", async ()=>{
+        const file = input.files && input.files[0];
+        input.value = "";
+        if (!file) return;
+
+        try{
+          
+  // -----------------------------
+  // Busy Overlay + Timeout helpers
+  // -----------------------------
+  function setBusy(isBusy, msg){
+    const ov = document.getElementById('busyOverlay');
+    if(!ov) return;
+    ov.style.display = isBusy ? 'flex' : 'none';
+    const t = ov.querySelector('[data-busy-text]');
+    if(t && typeof msg === 'string') t.textContent = msg;
+  }
+  function withTimeout(promise, ms, label='Operation'){
+    let timer;
+    const timeout = new Promise((_, reject)=>{
+      timer = setTimeout(()=>reject(new Error(label + ' timed out after ' + ms + 'ms')), ms);
+    });
+    return Promise.race([promise, timeout]).finally(()=>clearTimeout(timer));
+  }
+
+setBusy(true);
+          const text = await file.text();
+          const lines = text.split(/\r?\n/).filter(l=>l.trim().length);
+          if (lines.length < 2) return toast("CSV looks empty.", "error");
+
+          // Parse CSV (simple, supports quotes)
+          const parseLine = (line) => {
+            const out=[]; let cur=""; let inQ=false;
+            for (let i=0;i<line.length;i++){
+              const ch=line[i];
+              if (ch === '"' ){ 
+                if (inQ && line[i+1] === '"'){ cur+='"'; i++; }
+                else inQ=!inQ;
+              } else if (ch === ',' && !inQ){ out.push(cur); cur=""; }
+              else cur+=ch;
+            }
+            out.push(cur);
+            return out.map(s=>s.trim());
+          };
+
+          const headers = parseLine(lines[0]).map(h=>h.toLowerCase());
+          const idxName = headers.findIndex(h=>["service","service_name","name","title"].includes(h));
+          const idxType = headers.findIndex(h=>["type","role","category"].includes(h));
+          const idxPrice= headers.findIndex(h=>["price","amount","cost"].includes(h));
+
+          if (idxName === -1) return toast("CSV must have a column named service/service_name/name.", "error");
+
+          const { data: sess } = await sb.auth.getSession();
+          if (!sess?.session) return toast("Please login first.", "error");
+
+          // Determine selected clinic/branch if app uses it
+          const clinicId = window.currentClinicId || (window.state && window.state.clinicId) || "def";
+
+          const payload = [];
+          for (let i=1;i<lines.length;i++){
+            const cols = parseLine(lines[i]);
+            const name = (cols[idxName]||"").trim();
+            if (!name) continue;
+            payload.push({
+              clinic_id: clinicId,
+              name,
+              type: idxType>-1 ? (cols[idxType]||"").trim() : null,
+              price: idxPrice>-1 ? Number((cols[idxPrice]||"").replace(/[^0-9.]/g,'')) || null : null
+            });
+          }
+          if (!payload.length) return toast("No valid rows found in CSV.", "error");
+
+          // Upsert by (clinic_id,name,type) if unique exists; otherwise insert
+          const { error } = await sb.from("services").insert(payload);
+          if (error) throw error;
+
+          toast(`Imported ${payload.length} services ✅`, "success");
+          await refreshServicesEverywhere();
+        }catch(e){
+          toast(e?.message || "Import failed.", "error");
+        }finally{
+          setBusy(false);
+        }
+      });
+    }
+  }
+
+  // Ensure exports and imports wired after initial render & after navigation
+  document.addEventListener("DOMContentLoaded", ()=>{
+    wireExports();
+    wireServiceImport();
+    wireServiceFormResets();
+    wireDailyEntryReset();
+    // also re-wire after any route/view switches
+    const nav = document.querySelector("#sideNav") || document.body;
+    const mo = new MutationObserver(()=>{ wireExports(); wireServiceImport(); });
+    mo.observe(nav, { subtree:true, childList:true });
+  });
+
+
+  /* ===== Import (CSV + Paste Grid) — Zarqa template ===== */
+  let __importParsed = null;
+  let __importErrorRows = [];
+
+  function openImport(mode){
+    const ov = $("importOverlay");
+    if(!ov) return;
+    $("importMode").value = mode || "csv";
+    ov.style.display = "block";
+    syncImportMode();
+    $("importStatus").style.display="none";
+    $("importErrors").style.display="none";
+    $("runImportBtn").style.display="none";
+    $("downloadErrorsBtn").style.display="none";
+    $("importPreviewTable").innerHTML="";
+    __importParsed = null;
+    __importErrorRows = [];
+  }
+  function closeImport(){
+    const ov = $("importOverlay");
+    if(ov) ov.style.display="none";
+  }
+  function syncImportMode(){
+    const mode = $("importMode")?.value || "csv";
+    $("importCsvBox").style.display = mode==="csv" ? "block" : "none";
+    $("importPasteBox").style.display = mode==="paste" ? "block" : "none";
+  }
+
+  // Robust delimited parser (auto-detects , ; \t and tolerates quoted CSV)
+function detectDelimiterFromLine(line){
+  if(!line) return ",";
+  const tab = (line.match(/\t/g)||[]).length;
+  const comma = (line.match(/,/g)||[]).length;
+  const semi = (line.match(/;/g)||[]).length;
+  if(tab>=comma && tab>=semi && tab>0) return "\t";
+  if(comma>=semi && comma>0) return ",";
+  if(semi>0) return ";";
+  // fallback: 2+ spaces (fixed-width exports)
+  if(/\s{2,}/.test(line)) return "  ";
+  return ",";
+}
+
+function parseDelimitedText(text){
+  // normalize BOM + line endings
+  text = (text||"").replace(/^\uFEFF/, "");
+  const lines = text.split(/\r?\n/).filter(l=>l.trim()!=="");
+  if(!lines.length) return [];
+  const delim = detectDelimiterFromLine(lines.find(l=>l.trim()!=="")||"");
+  if(delim === "  "){
+    // split by 2+ spaces, keep non-empty
+    return lines.map(l=> l.trim().split(/\s{2,}/).map(c=>(c||"").trim()));
+  }
+  if(delim === "\t"){
+    return lines.map(l=> l.split("\t").map(c=>(c||"").replace(/\r/g,"")));
+  }
+  // CSV-style parser for comma/semicolon with quotes
+  const rows=[];
+  let row=[], cur="", inQ=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i], nx=text[i+1];
+    if(inQ){
+      if(ch === '"' && nx === '"'){ cur+='"'; i++; continue; }
+      if(ch === '"'){ inQ=false; continue; }
+      cur+=ch; continue;
+    }else{
+      if(ch === '"'){ inQ=true; continue; }
+      if(ch === delim){ row.push(cur); cur=""; continue; }
+      if(ch === '\n'){
+        row.push(cur); cur="";
+        row = row.map(c=> (c||"").replace(/\r/g,""));
+        if(row.some(c=>String(c||"").trim()!=="")) rows.push(row);
+        row=[]; continue;
+      }
+      cur+=ch;
+    }
+  }
+  row.push(cur);
+  row = row.map(c=> (c||"").replace(/\r/g,""));
+  if(row.some(c=>String(c||"").trim()!=="")) rows.push(row);
+  return rows;
+}
+
+// Backwards-compatible names used elsewhere
+function parseCSVText(text){ return parseDelimitedText(text); }
+function parsePasteGrid(text){ return parseDelimitedText(text); }function norm(s){ return (s??"").toString().trim(); }
+  function normKey(s){ return norm(s).replace(/\s+/g," ").toLowerCase(); }
+
+  function findDateInText(text){
+    const m = text.match(/التاريخ\s*[:：]?\s*([0-9]{1,2}[.\-/][0-9]{1,2}[.\-/][0-9]{2,4})/);
+    if(!m) return null;
+    const raw=m[1];
+    // Accept DD.MM.YYYY or DD/MM/YYYY
+    const parts = raw.split(/[.\-/]/).map(x=>x.trim());
+    if(parts.length!==3) return null;
+    let [dd,mm,yy]=parts;
+    if(yy.length===2) yy="20"+yy;
+    dd = dd.padStart(2,"0"); mm=mm.padStart(2,"0");
+    return `${yy}-${mm}-${dd}`;
+  }
+
+  function detectHeaderRow(rows){
+  // Find header row even if CSV has summary rows above the table.
+  // We accept Arabic/English variations.
+  const NEED_ANY = ["اسم الجلسة","الخدمة","Service"];
+  const NEED_ONE_OF = ["اسم العميل","العميل","Customer","رقم الملف","File"];
+  for(let i=0;i<rows.length;i++){
+    const r = (rows[i]||[]).map(norm);
+    if(!r.length) continue;
+    const joined = r.join(" | ");
+    const hasService = NEED_ANY.some(k=> joined.includes(k));
+    const hasOther  = NEED_ONE_OF.some(k=> joined.includes(k));
+    if(hasService && hasOther) return i;
+  }
+  return -1;
+}
+
+  function autoDetectSheetType(headers){
+    const h = headers.join(" | ");
+    if(h.includes("الدكتور")) return "doctor";
+    if(h.includes("الاخصائية") || h.includes("الأخصائية")) return "staff";
+    // fallback by presence of payments columns
+    return "staff";
+  }
+
+  function mapIndexes(headers){
+    const idx = {};
+    const h = headers.map(norm);
+
+    function findOne(cands){
+      for(const c of cands){
+        const j = h.findIndex(x=>x===c);
+        if(j>=0) return j;
+      }
+      // fuzzy contains
+      for(const c of cands){
+        const j = h.findIndex(x=>x.includes(c));
+        if(j>=0) return j;
+      }
+      return -1;
+    }
+
+    idx.staffName = findOne(["الاخصائية","الأخصائية","الموظف","الموظفة"]);
+    idx.doctorName = findOne(["الدكتور","الطبيب"]);
+    idx.customer = findOne(["اسم العميل","العميل","اسم المراجع"]);
+    idx.fileNo = findOne(["رقم الملف","رقم لملف","رقم الملف "]);
+    idx.service = findOne(["اسم الجلسة","الخدمة","Service"]);
+    idx.price = findOne(["سعر البكج /التسعيرة الاصلية","سعر البكج","التسعيرة الاصلية","السعر","Price"]);
+    idx.cash = findOne(["الكاش","كاش","Cash"]);
+    idx.visa = findOne(["visa","فيزا","Visa"]);
+    idx.click = findOne(["كليك","click","Click"]);
+    // quantity / shots columns (we'll prefer Shots if present)
+    idx.qty = findOne(["Shots/الضربات","الضربات","Shots","عدد الضربات","العدد","Qty","الكمية"]);
+    idx.notes = findOne(["ملاحظات","الملاحظات","ملاحظة","Notes"]);
+    return idx;
+  }
+
+  function parseZarqa(rows, preferredType, fallbackDate, allowPayments){
+    const textDump = rows.map(r=>r.join(",")).join("\n");
+    const foundDate = findDateInText(textDump);
+    const date = foundDate || fallbackDate || $("entryDate")?.value || new Date().toISOString().slice(0,10);
+
+    const headerRow = detectHeaderRow(rows);
+    if(headerRow<0){
+      return { ok:false, error:"Could not find header row (اسم الجلسة / اسم العميل). Make sure you exported the correct sheet as CSV UTF-8." };
+    }
+    const headers = rows[headerRow].map(norm);
+    const autoType = autoDetectSheetType(headers);
+    const sheetType = preferredType && preferredType!=="auto" ? preferredType : autoType;
+    const idx = mapIndexes(headers);
+
+    const out=[];
+    const errors=[];
+    for(let i=headerRow+1;i<rows.length;i++){
+      const r=rows[i];
+      // stop if row looks like totals or empty
+      if(!r || r.length===0) continue;
+      const any = r.some(c=>norm(c)!=="");
+      if(!any) continue;
+
+      const who = sheetType==="doctor" ? norm(r[idx.doctorName]) : norm(r[idx.staffName]);
+      const customer = norm(r[idx.customer]);
+      const service = norm(r[idx.service]);
+      const note = norm(r[idx.notes]);
+      const qtyRaw = (idx.qty!=null && idx.qty>=0) ? num(r[idx.qty]||0) : 0;
+      const qty = (qtyRaw && qtyRaw>0) ? qtyRaw : 1;
+
+      // Payments (optional)
+      let paid = null;
+      if(allowPayments){
+        const cash = num(r[idx.cash]||0);
+        const visa = num(r[idx.visa]||0);
+        const click = num(r[idx.click]||0);
+        const sum = cash + visa + click;
+        if(sum>0) paid = sum;
+      }
+      // fallback to price column if paid not provided
+      const listPrice = num(r[idx.price]||0);
+      if(paid==null && listPrice>0) paid = listPrice;
+
+      // Basic validation
+      const rowErr=[];
+      if(!who) rowErr.push("Missing name");
+      if(!service) rowErr.push("Missing service");
+      if(sheetType==="doctor" && !customer) rowErr.push("Missing customer");
+
+      const rec = {
+        _row: i+1,
+        date,
+        type: sheetType,
+        who,
+        customer: sheetType==="doctor" ? customer : "",
+        service,
+        qty,
+        paid: sheetType==="doctor" ? (paid ?? null) : null,
+        note,
+        raw: r
+      };
+
+      if(rowErr.length){
+        errors.push({ ...rec, error: rowErr.join("; ") });
+      }else{
+        out.push(rec);
+      }
+    }
+
+    return { ok:true, sheetType, date, headers, idx, rows: out, errors };
+  }
+
+    function validateImportRows(rows){
+      let ok=0, bad=0;
+      const issues=[];
+      (rows||[]).forEach((r, idx)=>{
+        const miss=[];
+        if(!String(r?.whoName||"").trim()) miss.push("name");
+        if(!String(r?.serviceName||"").trim()) miss.push("service");
+        const q = Number(r?.qty||0);
+        if(!(q>0)) miss.push("qty");
+        if(miss.length){ bad++; issues.push(`Row ${idx+1}: missing ${miss.join(", ")}`); }
+        else ok++;
+      });
+      return `
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <span class="pill">${ok} OK</span>
+          <span class="pill ${bad?'pill-warn':''}">${bad} With Issues</span>
+        </div>
+        ${bad?`<div style="margin-top:8px;font-size:12px;opacity:.85;max-height:110px;overflow:auto">${issues.slice(0,12).join("<br>")}${issues.length>12?`<br>... +${issues.length-12} more`:""}</div>`:""}
+      `;
+    }
+
+    function renderPreview(parsed){
+      const t = $("importPreviewTable");
+      const rows = (parsed && parsed.rows) ? parsed.rows : [];
+      const SHOW_LIMIT = 80;
+      const rowsToShow = rows.slice(0, SHOW_LIMIT);
+      window.__importWorking = JSON.parse(JSON.stringify(rows));
+
+      const esc = (s)=> String(s??"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+      const fields = [
+        {k:"date", label:"Date"},
+        {k:"type", label:"Type"},
+        {k:"whoName", label:"Name"},
+        {k:"serviceName", label:"Service"},
+        {k:"qty", label:"Qty"},
+        {k:"cost", label:"Default Cost"},
+        {k:"paid", label:"Customer Paid"},
+        {k:"note", label:"Note"},
+      ];
+
+      const header = fields.map(f=>`<th>${esc(f.label)}</th>`).join("") + `<th style="width:1%"></th>`;
+      const body = rowsToShow.map((r, idx)=>{
+        const cols = fields.map(f=>{
+          const v = (r && r[f.k] != null) ? r[f.k] : "";
+          const inputType = (["qty","cost","paid"].includes(f.k)) ? "number" : "text";
+          const step = (inputType==="number") ? ' step="0.01"' : "";
+          return `<td><input class="impCell" data-row="${idx}" data-field="${esc(f.k)}" type="${inputType}"${step} value="${esc(v)}" style="width:100%;border:0;background:transparent;outline:none;"></td>`;
+        }).join("");
+        return `<tr data-imp-row="${idx}">${cols}<td><button class="btn btn-sm btn-danger impDel" data-row="${idx}" type="button">✕</button></td></tr>`;
+      }).join("");
+
+      t.innerHTML = `
+        <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin:8px 0 12px;">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-sm" id="impAddRow" type="button">+ Add Row</button>
+            <button class="btn btn-sm" id="impRevalidate" type="button">Re-Validate</button>
+          </div>
+          <div style="opacity:.75;font-size:12px">Edit cells before Import. Showing first ${Math.min(SHOW_LIMIT, rows.length)} of ${rows.length} rows for speed.</div>
+        </div>
+        <div class="tableWrap">
+          <table class="table">
+            <thead><tr>${header}</tr></thead>
+            <tbody>${body || `<tr><td colspan="${fields.length+1}" style="text-align:center;opacity:.7;padding:18px;">No rows to import</td></tr>`}</tbody>
+          </table>
+        </div>
+      `;
+
+      function readEdits(){
+        // read current DOM inputs back into working array
+        const map = {};
+        t.querySelectorAll(".impCell").forEach(inp=>{
+          const i = Number(inp.dataset.row);
+          const f = inp.dataset.field;
+          if(!map[i]) map[i] = {};
+          let val = inp.value;
+          if(["qty","cost","paid"].includes(f)){
+            val = val === "" ? "" : Number(val);
+            if(Number.isNaN(val)) val = "";
+          }
+          map[i][f]=val;
+        });
+        window.__importWorking = window.__importWorking.map((r, i)=> ({...r, ...(map[i]||{})}));
+      }
+
+      t.querySelectorAll(".impCell").forEach(inp=>{
+        inp.addEventListener("input", ()=>{ /* keep it live */ });
+      });
+
+      t.querySelectorAll(".impDel").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          readEdits();
+          const i = Number(btn.dataset.row);
+          window.__importWorking.splice(i,1);
+          renderPreview({ ...parsed, rows: window.__importWorking });
+        });
+      });
+
+      $("impAddRow").onclick = ()=>{
+        readEdits();
+        window.__importWorking.push({ date: "", type: parsed.meta?.sheetType || "", whoName:"", serviceName:"", qty:1, cost:0, paid:0, note:"" });
+        renderPreview({ ...parsed, rows: window.__importWorking });
+      };
+
+      $("impRevalidate").onclick = ()=>{
+        readEdits();
+        const stats = validateImportRows(window.__importWorking);
+        $("importPreviewStats").innerHTML = stats;
+      };
+
+      $("runImportBtn").style.display = rows.length ? "inline-flex" : "none";
+      $("importPreviewStats").innerHTML = validateImportRows(rows);
+    }
+
+    async function importRows(parsed){
+    if(!CURR_CLINIC){ toast("Select a clinic first.","warn"); return; }
+    const createMissing = $("importCreateMissing")?.checked;
+    const allowPayments = $("importAllowPayments")?.checked;
+
+    // Build maps from loaded data arrays if present
+    const svcByName={}, staffByName={}, doctorByName={};
+    (SERVICES||[]).filter(x=>x.clinic_id===CURR_CLINIC).forEach(s=>{ svcByName[normKey(s.name)] = s; });
+    (STAFF||[]).filter(x=>x.clinic_id===CURR_CLINIC).forEach(s=>{ staffByName[normKey(s.name)] = s; });
+    (DOCTORS||[]).filter(x=>x.clinic_id===CURR_CLINIC).forEach(d=>{ doctorByName[normKey(d.name)] = d; });
+
+    const maps = { svcByName, staffByName, doctorByName };
+
+    let ok=0, fail=0;
+    const errorRows=[];
+
+    setBusy(true);
+    try{
+      // Row-by-row import for accurate error reporting
+      for(const row of parsed.rows){
+        try{
+          const { staff, doctor, service } = await ensurePersonAndService(row, maps, createMissing);
+
+          let entry = {
+            clinic_id: CURR_CLINIC,
+            date: row.date,
+            type: row.type,
+            service_id: service.id,
+            qty: 1,
+            note: row.note || null
+          };
+
+          if(row.type==="staff"){
+            entry.staff_id = staff.id;
+            entry.price = num(service.fixed||0); // staff payout
+          }else{
+            entry.doctor_id = doctor.id;
+            entry.customer = row.customer || null;
+
+            // Paid is optional: if null fallback to service.price
+            const paid = (row.paid!=null ? num(row.paid) : (num(service.price||0) || null));
+            entry.price = paid;
+
+            // Cost: override column not provided in template, so take service.doctor_cost
+            entry.cost = num(service.doctor_cost||0);
+          }
+
+          const r = await sb.from("entries").insert(entry);
+          if(r.error) throw r.error;
+
+          ok++;
+        }catch(err){
+          fail++;
+          errorRows.push({ ...row, error: err?.message || String(err) });
+        }
+      }
+
+      __importErrorRows = errorRows;
+      $("importStatus").style.display="block";
+      $("importStatus").innerHTML = `Imported: <b>${ok}</b> rows ✅ &nbsp; | &nbsp; Failed: <b>${fail}</b> rows ❌` + (importedIds.length?`<div style="margin-top:8px"><button class="btn btn-sm" id="editLastImportBtn" type="button">Edit Last Import</button></div>`:"");
+      try{ localStorage.setItem("clinic_last_import_ids", JSON.stringify(importedIds)); }catch(e){}
+      const editBtn = $("editLastImportBtn");
+      if(editBtn){ editBtn.onclick = openEditLastImport; }
+
+      if(fail){
+        $("importErrors").style.display="block";
+        $("importErrors").innerHTML = `Some rows failed. You can download an Errors CSV, fix them, and re-import.`;
+        $("downloadErrorsBtn").style.display="inline-block";
+      }else{
+        $("importErrors").style.display="none";
+        $("downloadErrorsBtn").style.display="none";
+      }
+
+      // Refresh app data
+      await loadData();
+      renderAll();
+    }finally{
+      setBusy(false);
+    }
+  }
+
+    
+    async function openEditLastImport(){
+      let ids=[];
+      try{ ids = JSON.parse(localStorage.getItem("clinic_last_import_ids")||"[]"); }catch(e){}
+      if(!ids.length){ alert("No recent import batch found."); return; }
+      const { data, error } = await sb.from("entries").select("*").in("id", ids);
+      if(error){ alert("Failed to load imported rows: "+error.message); return; }
+      // map into import-like rows for editing
+      const rows = (data||[]).map(e=>({
+        __id: e.id,
+        date: e.date,
+        type: e.type,
+        whoName: e.staff_id ? (STAFF.find(x=>x.id===e.staff_id)?.name||"") : (DOCTORS.find(x=>x.id===e.doctor_id)?.name||""),
+        serviceName: SERVICES.find(x=>x.id===e.service_id)?.name||"",
+        qty: e.qty,
+        cost: (e.fixed_staff??e.fixed_doctor??0),
+        paid: (e.paid_staff??e.paid_doctor??0),
+        note: e.note||""
+      }));
+      // show in same preview table but with a save button
+      const parsed = { rows, meta: { sheetType: "edit_last_import" } };
+      renderEditBatch(parsed);
+    }
+
+    function renderEditBatch(parsed){
+      const t = $("importPreviewTable");
+      const rows = parsed.rows||[];
+      window.__importWorking = JSON.parse(JSON.stringify(rows));
+      const esc = (s)=> String(s??"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+      const fields = [
+        {k:"date", label:"Date"},
+        {k:"type", label:"Type"},
+        {k:"whoName", label:"Name (read-only)"},
+        {k:"serviceName", label:"Service (read-only)"},
+        {k:"qty", label:"Qty"},
+        {k:"paid", label:"Customer Paid"},
+        {k:"note", label:"Note"},
+      ];
+      const header = fields.map(f=>`<th>${esc(f.label)}</th>`).join("");
+      const body = rowsToShow.map((r, idx)=>{
+        const cols = fields.map(f=>{
+          const v = (r && r[f.k] != null) ? r[f.k] : "";
+          const ro = (["whoName","serviceName"].includes(f.k)) ? "readonly" : "";
+          const inputType = (["qty","paid"].includes(f.k)) ? "number" : "text";
+          const step = (inputType==="number") ? ' step="0.01"' : "";
+          return `<td><input class="impEditCell" data-row="${idx}" data-field="${esc(f.k)}" type="${inputType}"${step} ${ro} value="${esc(v)}" style="width:100%;border:0;background:transparent;outline:none;${ro?'opacity:.7':''}"></td>`;
+        }).join("");
+        return `<tr>${cols}</tr>`;
+      }).join("");
+      t.innerHTML = `
+        <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin:8px 0 12px;">
+          <div style="opacity:.75;font-size:12px">Edit the last imported rows, then Save Changes.</div>
+          <button class="btn btn-sm" id="saveImportEditsBtn" type="button">Save Changes</button>
+        </div>
+        <div class="tableWrap">
+          <table class="table">
+            <thead><tr>${header}</tr></thead>
+            <tbody>${body || `<tr><td colspan="${fields.length}" style="text-align:center;opacity:.7;padding:18px;">No rows</td></tr>`}</tbody>
+          </table>
+        </div>
+      `;
+      $("saveImportEditsBtn").onclick = saveLastImportEdits;
+      $("runImportBtn").style.display = "none";
+      $("importPreviewStats").innerHTML = `<div class="pill">Editing ${rows.length} imported rows</div>`;
+    }
+
+    async function saveLastImportEdits(){
+      const t = $("importPreviewTable");
+      const map = {};
+      t.querySelectorAll(".impEditCell").forEach(inp=>{
+        const i = Number(inp.dataset.row);
+        const f = inp.dataset.field;
+        if(!map[i]) map[i] = {};
+        let val = inp.value;
+        if(["qty","paid"].includes(f)){
+          val = val === "" ? 0 : Number(val);
+          if(Number.isNaN(val)) val = 0;
+        }
+        map[i][f]=val;
+      });
+      window.__importWorking = window.__importWorking.map((r,i)=>({ ...r, ...(map[i]||{}) }));
+      $("importStatus").innerHTML = `<div class="muted">Saving changes...</div>`;
+      let ok=0, fail=0;
+      for(const r of window.__importWorking){
+        try{
+          const patch = { qty: Number(r.qty||0), note: r.note||"" };
+          // set paid to staff/doctor paid columns consistently
+          patch.paid_staff = Number(r.paid||0);
+          patch.paid_doctor = Number(r.paid||0);
+          const { error } = await sb.from("entries").update(patch).eq("id", r.__id);
+          if(error) throw error;
+          ok++;
+        }catch(e){ fail++; }
+      }
+      $("importStatus").innerHTML = `<div class="${fail?'warn':'success'}">Saved: ${ok} OK, ${fail} Failed.</div>`;
+      await loadData(); renderAll();
+    }
+
+
+
+  function downloadErrorsCSV(){
+    if(!__importErrorRows?.length){ return; }
+    const cols = ["row","date","type","name","customer","service","paid","note","error"];
+    const lines = [cols.join(",")];
+    for(const r of __importErrorRows){
+      const vals = [
+        r._row,
+        r.date,
+        r.type,
+        r.who,
+        r.customer||"",
+        r.service||"",
+        r.paid==null?"":r.paid,
+        (r.note||"").replace(/\n/g," "),
+        (r.error||"").replace(/\n/g," ")
+      ].map(v => `"${String(v??"").replace(/"/g,'""')}"`);
+      lines.push(vals.join(","));
+    }
+    const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href=url;
+    a.download=`import_errors_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // Wire UI
+  if($("importCsvBtn")) $("importCsvBtn").onclick = ()=> openImport("csv");
+  if($("pasteGridBtn")) $("pasteGridBtn").onclick = ()=> openImport("paste");
+  if($("closeImportBtn")) $("closeImportBtn").onclick = closeImport;
+  if($("importMode")) $("importMode").onchange = syncImportMode;
+  if($("downloadErrorsBtn")) $("downloadErrorsBtn").onclick = downloadErrorsCSV;
+
+  function bindImportUI(){
+    // open buttons on Daily page
+    const openCsv = $("importCsvBtn");
+    if(openCsv) openCsv.onclick = (e)=>{ e.preventDefault(); openImport("csv"); };
+    const openPaste = $("pasteGridBtn");
+    if(openPaste) openPaste.onclick = (e)=>{ e.preventDefault(); openImport("paste"); };
+
+    const closeBtn = $("closeImportBtn");
+    if(closeBtn) closeBtn.onclick = (e)=>{ e.preventDefault(); closeImport(); };
+
+    const modeSel = $("importMode");
+    if(modeSel) modeSel.onchange = ()=>{ syncImportMode(); };
+
+    const prevBtn = $("previewImportBtn");
+    if(prevBtn) prevBtn.onclick = async ()=>{
+      // UX: show processing state
+      try{
+        prevBtn.disabled = true;
+        prevBtn.textContent = "Previewing…";
+        $("importStatus").style.display="block";
+        $("importStatus").innerHTML = "Processing…";
+      }catch(e){}
+      try{
+            if(!CURR_CLINIC){ toast("Select a clinic first.","warn"); return; }
+
+            const mode = $("importMode").value;
+            const prefType = $("importSheetType").value;
+            const fbDate = $("importFallbackDate").value || null;
+            const allowPay = $("importAllowPayments").checked;
+
+            let rows;
+            if(mode==="csv"){
+              const f = $("importCsvFile").files?.[0];
+              if(!f) return toast("Choose a CSV file first.","warn");
+              const text = await f.text();
+              rows = parseCSVText(text);
+            }else{
+              const text = $("importPasteText").value || "";
+              if(!text.trim()) return toast("Paste rows first.","warn");
+              rows = parsePasteGrid(text);
+            }
+
+            const parsed = parseZarqa(rows, prefType, fbDate, allowPay);
+            if(!parsed.ok){
+              $("importErrors").style.display="block";
+              $("importErrors").innerHTML = esc(parsed.error);
+              $("runImportBtn").style.display="none";
+              $("importStatus").style.display="none";
+              $("importPreviewTable").innerHTML="";
+              return;
+            }
+
+            __importParsed = parsed;
+            $("importErrors").style.display="none";
+            $("importStatus").style.display="none";
+            $("runImportBtn").style.display="inline-block";
+            $("downloadErrorsBtn").style.display="none";
+
+            renderPreview(parsed);
+
+      
+            try{ if(window.batchSetRows){ window.batchSetRows(window.__importWorking || parsed.rows); } }catch(e){}
+      // show a small summary
+            $("importStatus").style.display="block";
+            $("importStatus").innerHTML = `Detected: <b>${parsed.sheetType}</b> • Date: <b>${parsed.date}</b> • Ready rows: <b>${parsed.rows.length}</b> • Row errors: <b>${parsed.errors.length}</b>`;
+          }catch(err){
+            console.error(err);
+            $("importErrors").style.display="block";
+            $("importErrors").innerHTML = esc(err?.message || String(err));
+          }
+      try{ prevBtn.disabled=false; prevBtn.textContent="Preview"; }catch(e){}
+    };
+
+    const runBtn = $("runImportBtn");
+    if(runBtn) runBtn.onclick = async ()=>{
+      try{
+        runBtn.disabled = true;
+        runBtn.textContent = "Importing…";
+        $("importStatus").style.display="block";
+        $("importStatus").innerHTML = "Importing…";
+      }catch(e){}
+      if(!__importParsed) return;
+          await importRows({ ...__importParsed, rows: (window.__importWorking || __importParsed.rows) });
+      try{ runBtn.disabled=false; runBtn.textContent="Import"; }catch(e){}
+    };
+  }
+
+  if(document.readyState==="loading") {
+    document.addEventListener("DOMContentLoaded", bindImportUI);
+  } else {
+    bindImportUI();
+  }
+
+
+})();
+</script>
+
+
+  <!-- Import Modal (Daily Entry) -->
+  <div id="importOverlay" class="noPrint" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,.45); z-index:9999; padding:18px; overflow:auto;">
+    <div class="card" style="max-width:1100px; margin:0 auto; background:var(--panel); border:1px solid var(--panel-border); box-shadow:0 20px 50px rgba(0,0,0,.25)">
+      <div class="row" style="justify-content:space-between; align-items:center;">
+        <div>
+          <h3 style="margin:0" data-i18n="import_daily">Import Daily Entry</h3>
+          <div class="hint" id="importSubtitle" style="margin-top:4px">Sheet-by-sheet • CSV or Paste Grid • Preview before import</div>
+        </div>
+        <button id="closeImportBtn" class="danger" style="font-size:12px" data-i18n="close">Close</button>
+      </div>
+
+      <div style="height:14px"></div>
+
+      <div class="grid g4" style="align-items:end">
+        <div style="grid-column:span 2">
+          <label class="hint" data-i18n="import_mode">Mode</label>
+          <select id="importMode">
+            <option value="csv">CSV Upload</option>
+            <option value="paste">Paste Grid</option>
+          </select>
+        </div>
+        <div>
+          <label class="hint" data-i18n="sheet_type">Sheet Type</label>
+          <select id="importSheetType">
+            <option value="auto">Auto Detect</option>
+            <option value="staff">Staff Sheet</option>
+            <option value="doctor">Doctor Sheet</option>
+          </select>
+        </div>
+        <div>
+          <label class="hint" data-i18n="import_date">Date (if not found)</label>
+          <input id="importFallbackDate" type="date">
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+
+      <div id="importCsvBox">
+        <label class="hint">CSV File (UTF-8)</label>
+        <input id="importCsvFile" type="file" accept=".csv,text/csv" style="width:100%">
+      </div>
+
+      <div id="importPasteBox" style="display:none">
+        <label class="hint">Paste rows from Excel/Sheets (tab-separated)</label>
+        <textarea id="importPasteText" style="width:100%; min-height:160px; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size:12px; padding:10px; border:1px solid var(--panel-border); border-radius:10px;"></textarea>
+      </div>
+
+      <div class="row" style="justify-content:space-between; margin-top:12px; flex-wrap:wrap; gap:10px">
+        <div class="row" style="gap:10px; flex-wrap:wrap">
+          <label class="row" style="gap:8px; font-size:13px">
+            <input id="importCreateMissing" type="checkbox" checked>
+            <span data-i18n="create_missing">Create missing services/people</span>
+          </label>
+          <label class="row" style="gap:8px; font-size:13px">
+            <input id="importAllowPayments" type="checkbox" checked>
+            <span data-i18n="allow_payments">Use payments (Cash/Visa/Click) if present</span>
+          </label>
+        </div>
+        <div class="row" style="gap:8px">
+          <button id="previewImportBtn" class="primary" data-i18n="preview">Preview</button>
+          <button id="runImportBtn" class="primary" style="display:none" data-i18n="import">Import</button>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div id="importStatus" class="notice" style="display:none; border:1px solid #a7f3d0; background:#ecfdf5; color:#065f46; font-size:13px"></div>
+      <div id="importErrors" class="notice" style="display:none; border:1px solid #fecaca; background:#fef2f2; color:#991b1b; font-size:13px"></div>
+
+      <div style="height:8px"></div>
+
+      <div class="tablewrap" style="max-height:360px; overflow:auto">
+        <table id="importPreviewTable"></table>
+      </div>
+
+      <div class="row" style="justify-content:flex-end; margin-top:10px; gap:10px">
+        <button id="downloadErrorsBtn" style="display:none; font-size:12px">Download Errors CSV</button>
+      </div>
+    </div>
+  </div>
+
+
+<script>
+(() => {
+  if (window.__batchGridInit) return;
+  window.__batchGridInit = true;
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (m) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+  const uid = () => (Date.now().toString(36) + Math.random().toString(36).slice(2));
+  const todayISO = () => new Date().toISOString().slice(0,10);
+
+  // Uses existing globals from the app: STATE, CURR_CLINIC, sb, toast, loadData
+  let rows = [];
+
+  function normalizeRow(r = {}) {
+    return {
+      date: r.date || $("entryDate")?.value || todayISO(),
+      type: (r.type === "doctor" ? "doctor" : "staff"),
+      who: (r.who ?? r.name ?? "").toString(),
+      customer: (r.customer ?? "").toString(),
+      service: (r.service ?? r.service_name ?? "").toString(),
+      qty: Number.isFinite(+r.qty) && +r.qty > 0 ? +r.qty : 1,
+      paid: r.paid == null || r.paid === "" ? "" : +r.paid,
+      note: (r.note ?? "").toString(),
+    };
+  }
+
+  function setStatus(msg, kind="ok") {
+    const st = $("batchStatus");
+    if(!st) return;
+    st.style.display = "block";
+    st.style.border = kind==="bad" ? "1px solid #fecaca" : (kind==="warn" ? "1px solid #fde68a" : "1px solid #a7f3d0");
+    st.style.background = kind==="bad" ? "#fef2f2" : (kind==="warn" ? "#fffbeb" : "#ecfdf5");
+    st.style.color = kind==="bad" ? "#991b1b" : (kind==="warn" ? "#92400e" : "#065f46");
+    st.innerHTML = esc(msg);
+
+    // sound cue (only when status changes)
+    if(st.dataset.lastMsg !== String(msg) || st.dataset.lastKind !== String(kind)){
+      st.dataset.lastMsg = String(msg);
+      st.dataset.lastKind = String(kind);
+      if(kind==="bad") sfx("err");
+      else if(kind==="warn") sfx("warn");
+      else sfx("ok");
+    }
+  }
+  function clearStatus(){ const st=$("batchStatus"); if(st){ st.style.display="none"; st.textContent=""; } }
+
+
+  function __normStr(s){ return (s==null?"":String(s)).trim(); }
+
+  function whoOptions(type, current){
+    const cur = __normStr(current);
+    const list = type==="doctor" ? (window.STATE?.doctors||[]) : (window.STATE?.staff||[]);
+    const names = list.map(x=>__normStr(x.name)).filter(Boolean);
+    const uniq = Array.from(new Set(names));
+    let out = `<option value="">--</option>`;
+    for(const n of uniq){
+      const sel = n===cur ? "selected" : "";
+      out += `<option value="${esc(n)}" ${sel}>${esc(n)}</option>`;
+    }
+    if(cur && !uniq.includes(cur)){
+      out += `<option value="${esc(cur)}" selected>${esc(cur)} (custom)</option>`;
+    }
+    return out;
+  }
+
+  function serviceOptions(type, current){
+    const cur = __normStr(current);
+    const svcs = (window.STATE?.services||[]);
+    const list = svcs.filter(s=>{
+      const cat = __normStr(s.category||s.cat||s.type||"");
+      return type==="doctor" ? cat==="doctor" : cat==="staff";
+    }).map(s=>__normStr(s.name)).filter(Boolean);
+    const uniq = Array.from(new Set(list));
+    let out = `<option value="">--</option>`;
+    for(const n of uniq){
+      const sel = n===cur ? "selected" : "";
+      out += `<option value="${esc(n)}" ${sel}>${esc(n)}</option>`;
+    }
+    if(cur && !uniq.includes(cur)){
+      out += `<option value="${esc(cur)}" selected>${esc(cur)} (custom)</option>`;
+    }
+    out += `<option value="__NEW__">+ Add new service…</option>`;
+    return out;
+  }
+  function render() {
+    const t = $("batchTable");
+    if(!t) return;
+
+    if(!rows.length){
+      t.innerHTML = `
+        <tr>
+          <th>Date</th><th>Type</th><th>Who</th><th>Customer</th><th>Service</th><th>Qty</th><th>Paid</th><th>Note</th><th>X</th>
+        </tr>
+        <tr><td colspan="9" style="color:#64748b">No rows yet. Click “Add Row +” or use Import CSV / Paste Grid then Preview.</td></tr>
+      `;
+      return;
+    }
+
+    t.innerHTML = `
+      <tr>
+        <th>Date</th><th>Type</th><th>Who</th><th>Customer</th><th>Service</th><th>Qty</th><th>Paid</th><th>Note</th><th>X</th>
+      </tr>
+    ` + rows.map((r,i)=>`
+      <tr data-row="${i}">
+        <td><input data-col="date" type="date" value="${esc(r.date)}" style="min-width:140px"></td>
+        <td>
+          <select data-col="type" style="min-width:110px">
+            <option value="staff" ${r.type==="staff"?"selected":""}>staff</option>
+            <option value="doctor" ${r.type==="doctor"?"selected":""}>doctor</option>
+          </select>
+        </td>
+        <td><select data-col="who" style="min-width:180px">${whoOptions(r.type, r.who)}</select></td>
+        <td><input data-col="customer" value="${esc(r.customer)}" placeholder="Customer" style="min-width:200px"></td>
+        <td><select data-col="service" style="min-width:220px">${serviceOptions(r.type, r.service)}</select></td>
+        <td><input data-col="qty" type="number" min="1" value="${esc(r.qty)}" style="width:90px"></td>
+        <td><input data-col="paid" type="number" value="${r.paid===""?"":esc(r.paid)}" placeholder="(doctor)" style="width:110px"></td>
+        <td><input data-col="note" value="${esc(r.note)}" placeholder="Note" style="min-width:220px"></td>
+        <td><button class="danger noPrint" data-del="${i}" style="padding:6px 10px;border-radius:10px">x</button></td>
+      </tr>
+    `).join("");
+  }
+
+  function addRow(seed=null){
+    rows.push(normalizeRow(seed||{}));
+    render();
+  }
+
+  function clearAll(){
+    rows = [];
+    clearStatus();
+    render();
+  }
+
+  function syncFromTable(){
+    const t = $("batchTable");
+    if(!t) return;
+    const newRows = [];
+    t.querySelectorAll("tr[data-row]").forEach(tr=>{
+      const i = +tr.getAttribute("data-row");
+      const r = rows[i] || normalizeRow({});
+      tr.querySelectorAll("[data-col]").forEach(el=>{
+        const col = el.getAttribute("data-col");
+        let v = el.value;
+        if(col==="qty") v = Math.max(1, parseInt(v||"1",10) || 1);
+        if(col==="paid") v = v==="" ? "" : (parseFloat(v) || 0);
+        r[col] = v;
+      });
+      newRows.push(normalizeRow(r));
+    });
+    rows = newRows;
+  }
+
+  async function ensurePerson(type, name){
+    name = (name||"").trim();
+    if(!name) return { ok:false, error:"Missing person name" };
+
+    if(type==="doctor"){
+      const found = (window.STATE?.doctors||[]).find(d => (d.name||"").trim() === name);
+      if(found) return { ok:true, id: found.id };
+      const allow = $("importCreateMissing")?.checked ?? true;
+      if(!allow) return { ok:false, error:`Doctor not found: ${name}` };
+      const id = uid();
+      const payload = { id, clinic_id: window.CURR_CLINIC, name };
+      const res = await window.sb.from("doctors").insert(payload).select();
+      if(res.error) return { ok:false, error: res.error.message };
+      window.STATE.doctors.push(payload);
+      return { ok:true, id };
+    }else{
+      const found = (window.STATE?.staff||[]).find(s => (s.name||"").trim() === name);
+      if(found) return { ok:true, id: found.id };
+      const allow = $("importCreateMissing")?.checked ?? true;
+      if(!allow) return { ok:false, error:`Staff not found: ${name}` };
+      const id = uid();
+      const payload = { id, clinic_id: window.CURR_CLINIC, name, base_salary: 0 };
+      const res = await window.sb.from("staff").insert(payload).select();
+      if(res.error) return { ok:false, error: res.error.message };
+      window.STATE.staff.push(payload);
+      return { ok:true, id };
+    }
+  }
+
+  async function ensureService(type, serviceName){
+    serviceName = (serviceName||"").trim();
+    if(!serviceName) return { ok:false, error:"Missing service name" };
+
+    const cat = type === "doctor" ? "doctor" : "staff";
+    const found = (window.STATE?.services||[]).find(s => (s.name||"").trim() === serviceName && (s.category||"staff") === cat);
+    if(found) return { ok:true, id: found.id };
+
+    const allow = $("importCreateMissing")?.checked ?? true;
+    if(!allow) return { ok:false, error:`Missing service: ${serviceName}` };
+
+    // Ask user
+    let staff_fixed = 0, default_price = 0, doctor_cost = 0;
+    if(cat==="staff"){
+      const ans = prompt(`Service "${serviceName}" not found.\nEnter staff fixed payout/commission (JD) to ADD it:`, "0");
+      if(ans===null) return { ok:false, error:"User cancelled adding service" };
+      staff_fixed = parseFloat(ans||"0") || 0;
+    }else{
+      const p1 = prompt(`Doctor service "${serviceName}" not found.\nEnter default price (JD) to ADD it:`, "0");
+      if(p1===null) return { ok:false, error:"User cancelled adding service" };
+      default_price = parseFloat(p1||"0") || 0;
+      const p2 = prompt(`Doctor service "${serviceName}": enter cost (JD):`, "0");
+      if(p2===null) return { ok:false, error:"User cancelled adding service" };
+      doctor_cost = parseFloat(p2||"0") || 0;
+    }
+
+    const id = uid();
+    const payload = { id, name: serviceName, category: cat, staff_fixed, default_price, doctor_cost };
+    const res = await window.sb.from("services").insert(payload).select();
+    if(res.error) return { ok:false, error: res.error.message };
+    window.STATE.services.push(payload);
+    return { ok:true, id };
+  }
+
+  async function submitBatch(){
+    syncFromTable();
+    if(!window.CURR_CLINIC) return window.toast?.("Select a clinic first.","warn");
+    if(!rows.length) return window.toast?.("No rows to submit.","warn");
+
+    setStatus("Submitting batch…", "warn");
+
+    const inserts = [];
+    for(let i=0;i<rows.length;i++){
+      const r = rows[i];
+      const type = (r.type||"staff").trim()==="doctor" ? "doctor" : "staff";
+      const whoName = (r.who||"").trim();
+      const svcName = (r.service||"").trim();
+      if(!whoName || !svcName){
+        setStatus(`Row ${i+1}: missing WHO or SERVICE`, "bad");
+        return;
+      }
+
+      const whoRes = await ensurePerson(type, whoName);
+      if(!whoRes.ok){ setStatus(`Row ${i+1}: ${whoRes.error}`, "bad"); return; }
+
+      const svcRes = await ensureService(type, svcName);
+      if(!svcRes.ok){ setStatus(`Row ${i+1}: ${svcRes.error}`, "bad"); return; }
+
+      inserts.push({
+        id: uid(),
+        clinic_id: window.CURR_CLINIC,
+        date: r.date || todayISO(),
+        type,
+        staff_id: type==="staff" ? whoRes.id : null,
+        doctor_id: type==="doctor" ? whoRes.id : null,
+        service_id: svcRes.id,
+        qty: Math.max(1, parseInt(r.qty||"1",10) || 1),
+        paid: type==="doctor" ? (r.paid===""? null : (parseFloat(r.paid)||0)) : null,
+        customer: type==="doctor" ? (r.customer||"").trim() : null,
+        note: (r.note||"").trim(),
+      });
+    }
+
+    const res = await withTimeout(window.sb.from("entries").insert(inserts).select(), 15000, "Batch insert");
+    if(res.error){
+      setStatus("Import failed: " + res.error.message, "bad");
+      return;
+    }
+
+    setStatus(`Done. Inserted ${inserts.length} row(s). Reloading…`, "ok");
+    clearAll();
+    try{ await window.loadData(); }catch(e){}
+    window.toast?.("Batch imported!");
+  }
+
+  // Public API for import modal to push rows into batch table
+  window.batchSetRows = function(importRows){
+    rows = (importRows || []).map(normalizeRow);
+    clearStatus();
+    render();
+    if(rows.length) setStatus(`Loaded ${rows.length} row(s) into Batch Grid. Edit then Submit.`, "ok");
+  };
+
+  
+  // Handle selects in batch table (e.g., add new service inline)
+  document.addEventListener("change", async (e)=>{
+    const el = e.target;
+    if(!el) return;
+    if(el.matches('select[data-col="service"]')){
+      if(el.value==="__NEW__"){
+        const tr = el.closest("tr[data-row]");
+        const typeEl = tr?.querySelector('select[data-col="type"]');
+        const type = typeEl?.value || "staff";
+        const name = prompt("New service name:");
+        if(!name){ el.value=""; return; }
+        // create service now, ask commission/payout
+        try{
+          const fixed = type==="staff" ? prompt(`Staff fixed payout/commission (JD) for "${name}":`, "0") : null;
+          const payload = { id: uid(), name: String(name).trim(), category: type };
+          if(type==="staff"){ payload.staff_fixed = parseFloat(fixed||"0")||0; }
+          if(type==="doctor"){
+            const price = prompt(`Default price (JD) for "${name}":`, "0");
+            const cost = prompt(`Doctor cost (JD) for "${name}":`, "0");
+            payload.default_price = parseFloat(price||"0")||0;
+            payload.doctor_cost = parseFloat(cost||"0")||0;
+          }
+          const ins = await sb.from('services').insert(payload);
+          if(ins.error) throw ins.error;
+          window.STATE?.services?.push(payload);
+          // set select to new service and re-render to refresh options
+          el.value = payload.name;
+          syncFromTable();
+          render();
+          setStatus(`Added service "${payload.name}".`, "ok");
+        }catch(err){
+          setStatus(`Failed to add service: ${err?.message||err}`, "bad");
+          el.value="";
+        }
+      }
+    }
+  });
+
+// Wire buttons with safe event delegation
+  document.addEventListener("click", (e)=>{
+    const id = e.target?.id;
+    if(id==="batchAddRowBtn"){ e.preventDefault(); addRow(); return; }
+    if(id==="batchClearBtn"){ e.preventDefault(); clearAll(); return; }
+    if(id==="batchSubmitBtn"){ e.preventDefault(); submitBatch(); return; }
+
+    const del = e.target?.getAttribute?.("data-del");
+    if(del!=null){
+      e.preventDefault();
+      const i = parseInt(del,10);
+      if(Number.isFinite(i)){ rows.splice(i,1); render(); }
+      return;
+    }
+  });
+
+  // Track edits
+  document.addEventListener("input", (e)=>{
+    if(e.target?.closest?.("#batchTable")) syncFromTable();
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>
